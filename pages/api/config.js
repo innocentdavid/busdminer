@@ -1,4 +1,5 @@
 import sanityClient from '@sanity/client'
+
 const config = {
   dataset: process.env.SANITY_STUDIO_API_DATASET,
   projectId: process.env.SANITY_STUDIO_API_PROJECT_ID,
