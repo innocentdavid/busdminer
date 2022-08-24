@@ -76,7 +76,7 @@ export default function Home() {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
               <div className="text-red-600"><AiOutlineStar size="20px" /></div>
-              <span className="text-white">0xE0****35df</span>
+              <span className="text-white">0xE0*****35df</span>
             </div>
 
             <div><FiCopy /></div>
