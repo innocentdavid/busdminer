@@ -6,7 +6,7 @@ import schemaTypes from 'all:part:@sanity/base/schema-type'
 import user from './user'
 import lottery from './lottery'
 import ticket from './ticket'
-import winners from './winners'
+import winner from './winner'
 
 // Then we give our schema to the builder and provide the result to Sanity
 export default createSchema({
@@ -19,6 +19,6 @@ export default createSchema({
     user,
     lottery,
     ticket,
-    winners
+    winner
   ]),
 })

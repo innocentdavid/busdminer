@@ -1,6 +1,6 @@
 export default {
-  name: 'ticket',
-  title: 'Ticket',
+  name: 'winner',
+  title: 'Winner',
   type: 'document',
   fields: [
     {
@@ -44,14 +44,13 @@ export default {
 
   preview: {
     select: {
-      winnerAddress: 'user.walletAddress',
-      lottery: 'lottery.lid',
+      title: 'lottery.lid',
       ticket: 'ticket.tid'
     },
     prepare(selection) {
-      const {lottery} = selection
+      const {ticket} = selection
       return Object.assign({}, selection, {
-        subtitle: lottery && `for ${lottery}`
+        subtitle: ticket && `for ${ticket}`
       })
     }
   }

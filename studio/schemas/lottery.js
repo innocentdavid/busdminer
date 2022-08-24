@@ -1,40 +1,30 @@
 export default {
-  name: 'user',
-  title: 'User',
+  name: 'lottery',
+  title: 'Lottery',
   type: 'document',
-  fields: [
+  fields: [    
     {
-      name: 'lid',
-      title: 'Lottery Id',
-      type: 'string',
+      name: 'initialPrize',
+      title: 'Initial Prize',
+      type: 'string'
     },
     {
       name: 'start',
       title: 'Start',
-      type: 'string',
+      type: 'datetime',
+      validation: (Rule) => Rule.required(),
     },
     {
       name: 'end',
       title: 'End',
-      type: 'string',
-    },
-    {
-      name: 'initialPrize',
-      title: 'Initial Prize',
-      type: 'string',
+      type: 'datetime',
       validation: (Rule) => Rule.required(),
     },
     {
-      name: 'winner',
-      title: 'Winner',
-      type: 'reference',
-      to: {type: 'user'},
-      validation: (Rule) => Rule.required(),
-    },
-    {
-      name: 'winnerTicket',
-      title: 'Winner Ticket',
+      name: 'totalTicket',
+      title: 'Total Ticket',
       type: 'string',
+      validation: (Rule) => Rule.required()
     },
     {
       name: 'topDeposit',
@@ -42,27 +32,27 @@ export default {
       type: 'string',
     },
     {
-      name: 'totalTicket',
-      title: 'Total Ticket',
+      name: 'winningTicket',
+      title: 'Winning Ticket',
       type: 'string',
     },
     {
-      name: 'publishedAt',
-      title: 'Published at',
-      type: 'datetime',
-      validation: (Rule) => Rule.required(),
+      name: 'winner',
+      title: 'Winner',
+      type: 'reference',
+      to: {type: 'user'}
     },
   ],
 
   preview: {
     select: {
-      start: 'start',
-      end: 'end',
+      title: 'start',
+      winner: 'winner.walletAddress',
     },
     prepare(selection) {
-      const {start, end} = selection
+      const {winner} = selection
       return Object.assign({}, selection, {
-        subtitle: `${start} to ${end}`
+        subtitle: winner && `winner - ${winner}`
       })
     }
   }
