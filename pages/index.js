@@ -9,7 +9,7 @@ import { FcSpeaker } from 'react-icons/fc'
 import { FiCopy } from 'react-icons/fi'
 
 export default function Home() {
-  var countDate = new Date("Aug 21, 2022 00:00:00").getTime();
+  var countDate = new Date("Aug 25, 2022 00:00:00").getTime();
 
   const countDown = () => {
     var now = new Date().getTime();
@@ -56,7 +56,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col md:flex-row gap-6 mt-7">
-            <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]">PLAY NOW <BiCaretRightCircle /></a>
+            <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]">PLAY NOW </a>
 
             <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 border py-2 px-4  hover:text-[#0070f3]">WIN A TICKET <FaTicketAlt /></a>
           </div>
@@ -69,7 +69,7 @@ export default function Home() {
         <section className="grid place-items-center mt-10">
           <div className="flex items-center gap-4">
             <div className="md:w-20 w-10 h-[1px] border-b border-b-gray-600"></div>
-            <div className="font-bold text-2xl">Last Raffle Winner</div>
+            <div className="font-bold text-2xl">Last Winner</div>
             <div className="md:w-20 w-10 h-[1px] border-b border-b-gray-600"></div>
           </div>
 
@@ -106,27 +106,27 @@ export default function Home() {
 
           <p align="center">Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur.</p>
 
-          <a href="#" className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]">PLAY NOW <BiCaretRightCircle /></a>
+          <a href="#" className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]">PLAY NOW </a>
         </section>
 
         <section className="grid place-items-center mt-8">
-          <div className="countdown flex gap-2 md:gap-10 mt-[50px] pb-10 w-full overflow-auto">
+          <div className="countdown flex justify-center gap-2 md:gap-10 mt-[50px] pb-10 w-full overflow-auto">
             <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
-				<div id="day" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">NA</div>
-				<div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Days</div>
-			</div>
+              <div id="day" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">NA</div>
+              <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Days</div>
+            </div>
             <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
-				<div id="hour" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">NA</div>
-				<div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Hours</div>
-			</div>
+              <div id="hour" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">NA</div>
+              <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Hours</div>
+            </div>
             <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
-				<div id="minute" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">NA</div>
-				<div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Minutes</div>
-			</div>
+              <div id="minute" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">NA</div>
+              <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Minutes</div>
+            </div>
             <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
-				<div id="second" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">NA</div>
-				<div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Seconds</div>
-			</div>
+              <div id="second" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">NA</div>
+              <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Seconds</div>
+            </div>
           </div>
 
           <h1 className="mt-5 text-3xl">Total ticket left <span className="py-1 px-2 bg-white font-bold">20</span></h1>
@@ -139,7 +139,7 @@ export default function Home() {
           </div>
 
           <div className="mt-5 flex flex-col md:flex-row items-center gap-3">
-            <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-1 px-3 hover:text-[#0070f3]">Buy Ticket <BiCaretRightCircle /></a>
+            <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-1 px-3 hover:text-[#0070f3]">Buy Ticket </a>
 
             <a href="#" className="hover:text-[#0070f3]">Refer to earn free ticket</a>
           </div>
