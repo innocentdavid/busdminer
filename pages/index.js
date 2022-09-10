@@ -4,6 +4,7 @@ import Image from 'next/image'
 import styles from '../styles/Home.module.css'
 import { AiOutlineStar } from 'react-icons/ai'
 import { BiCaretRightCircle } from 'react-icons/bi'
+import { BsArrowRight } from 'react-icons/bs'
 import { IoMdMenu } from "react-icons/io";
 import { ConnectButton } from "web3uikit";
 import { FaTicketAlt } from 'react-icons/fa'
@@ -13,10 +14,12 @@ import { AppContext } from "../context/AppContext";
 import { useContext } from "react";
 import { FiLogOut } from 'react-icons/fi'
 import { formatWalletAddress } from "../lib/functions";
+import { useRouter } from "next/router";
+import Link from "next/link";
 
 export default function Home() {
+  const router = useRouter()
   const { appStatus, connectWallet, disconnectWallet, currentAccount, userBalance, fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery } = useContext(AppContext)
-  const [showBT, setShowBT] = useState(false)
 
   if (appStatus === 'loading') {
     return (
@@ -96,11 +99,13 @@ export default function Home() {
           {/* <div className="">Connect to Metamask.</div> */}
         </div>
         :
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col text-end">
           <div className="font-bold select-none">{currentAccount && formatWalletAddress(currentAccount)} | ${userBalance}</div>
-          <FiLogOut className="cursor-pointer" onClick={disconnectWallet} />
+          <div className="text-sm font-semibold">Ticket: <span className="font-bold">0</span></div>
+          {/* <FiLogOut className="cursor-pointer" onClick={disconnectWallet} /> */}
         </div>}
     </nav>
+
     <div className="mt-16"></div>
 
     <div className={`${styles.main}`}>
@@ -114,12 +119,13 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col md:flex-row gap-6 mt-7">
-          <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]">PLAY NOW </a>
+          <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
+          onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </a>
 
           {/* by referral action */}
 
-          <a href="#buyTicket" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 border py-2 px-4  hover:text-[#0070f3] cursor-pointer"
-            onClick={() => { setShowBT(true) }}>BUY A TICKET <FaTicketAlt /></a>
+          <a href="/?buyTicket=1" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 border py-2 px-4  hover:text-[#0070f3] cursor-pointer"
+            onClick={(e) => { e.preventDefault(); router.replace('/?buyTicket=1') }}>BUY A TICKET <FaTicketAlt /></a>
         </div>
       </section>
 
@@ -171,7 +177,8 @@ export default function Home() {
 
         <p align="center">Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur.</p>
 
-        <a href="#" className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]">PLAY NOW </a>
+        <a href="#" className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
+        onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </a>
       </section>
 
       <section className="grid place-items-center mt-8">
@@ -194,7 +201,7 @@ export default function Home() {
           </div>
         </div>
 
-        <h1 className="mt-5 text-3xl">Total ticket left <span className="py-1 px-2 bg-white font-bold">{currentLottery?.totalTicket}20</span></h1>
+        <h1 className="mt-5 text-3xl">Available slot <span className="py-1 px-2 bg-white font-bold">{currentLottery?.totalTicket}20</span></h1>
 
         <p className="md:text-xl text-base font-bold mt-5">Top deposited price: <span>${currentLottery?.topDeposited}7, 000.49</span></p>
 
@@ -204,42 +211,95 @@ export default function Home() {
         </div>
 
         <div className="mt-5 flex flex-col md:flex-row items-center gap-3">
-          <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-1 px-3 hover:text-[#0070f3] cursor-pointer"
-            onClick={() => { setShowBT(true) }}>Buy Ticket </a>
+          <a href="" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-1 px-3 hover:text-[#0070f3] cursor-pointer"
+            onClick={(e) => { e.preventDefault(); router.replace('/?buyTicket=1') }}>Buy Ticket </a>
 
-          <a href="#" className="hover:text-[#0070f3]">Refer to earn free ticket</a>
+          {/* <a href="#" className="hover:text-[#0070f3]">Refer to earn free ticket</a> */}
         </div>
       </section>
     </div>
 
     <footer className={styles.footer}>
-      <a
-        href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <div>Powered by <a href="tel:8112659304" className="font-bold">BINANCE MINERS</a></div>
-      </a>
+      {/* <Link href="/"><a> */}
+          <div>Powered by <a href="tel:8112659304" className="font-bold">BINANCE MINERS</a></div>
+        {/* </a></Link> */}
     </footer>
 
-    {showBT && <BuyTicket setShowBT={setShowBT} />}
+    {router?.query?.buyTicket && <BuyTicket router={router} />}
+    {router?.query?.play && <Play router={router} />}
   </div>)
 }
 
 
-const BuyTicket = ({ setShowBT }) => {
+const Play = ({ router }) => {
 
   return (<>
     <div className="z-50">
       <div className="fixed top-0 left-0 w-full h-full"
         style={{ background: "rgba(0,0,0,.5)" }}
-        onClick={() => { setShowBT(false) }}></div>
+        onClick={() => { router.push('/') }}></div>
+      <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] min-w-[300px] md:min-w-[450px]">
+        <div className="header font-bold p-2 text-white flex justify-between rounded-t-lg bg-[#ffa500]">
+          <div className="">SHOW IMG</div>
+        </div>
+        <div className="body rounded-b-lg bg-white p-2">
+          <div className="text-right text-sm">Available slots <span className="font-bold">300</span></div>
+          <form className="mt-6 px-[30%]">
+            <div>
+              <input type="number" placeholder="1 ticket per slot"
+                className="w-full outline-none border-b" />
+            </div>
+            <div className="mt-5 flex justify-end">
+              <button type="submit">
+                <BsArrowRight className="outline-none font-[900] text-black text-xl" />
+              </button>
+            </div>
+          </form>
+
+          <div className="border-b mt-8"></div>
+
+          <div className="text-center text-sm">
+            <div>You have 0 Ticket(s)</div>
+            <div><Link href="/?buyticket=1"><a className="text-blue-600">Buy More</a></Link></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </>)
+}
+
+const BuyTicket = ({ router }) => {
+
+  return (<>
+    <div className="z-50">
+      <div className="fixed top-0 left-0 w-full h-full"
+        style={{ background: "rgba(0,0,0,.5)" }}
+        onClick={() => { router.push('/') }}></div>
       <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] min-w-[300px] md:min-w-[450px]">
         <div className="header font-bold p-2 text-white flex justify-between rounded-t-lg bg-[#ffa500]">
           <div className="text-lg">Buy Ticket</div>
           <div>$1 per ticket</div>
         </div>
-        <div className="body rounded-b-lg bg-white p-2">body</div>
+        <div className="body rounded-b-lg bg-white py-4">
+          <form className="px-[20%]">
+            <div>
+              <div>Number of Tickets</div>
+              <input type="number" placeholder="Enter number of tickets"
+                className="w-full outline-none" />
+            </div>
+            <div className="mt-6">
+              <input type="submit" value="Continue"
+                className="w-full outline-none bg-black text-white" />
+            </div>
+          </form>
+
+          <div className="border-b mt-8"></div>
+
+          <div className="text-center text-sm">
+            <div>Your Balance: <span>${userBalance}</span></div>
+            <div><Link href="/?buyticket=1"><a className="text-blue-600">Buy More</a></Link></div>
+          </div>
+        </div>
       </div>
     </div>
   </>)

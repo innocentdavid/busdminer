@@ -60,12 +60,12 @@ export const AppProvider = ({ children }) => {
       } else {
         // alert('notConnected')
         setAppStatus('notConnected')
-        router.push('/')
+        // router.push('/')
       }
     } catch (err) {
       // alert('An error occured')
       setAppStatus('error')
-      router.push('/')
+      // router.push('/')
     }
   }
 
@@ -90,7 +90,7 @@ export const AppProvider = ({ children }) => {
       } else {
         // alert('notConnected')
         setAppStatus('notConnected')
-        router.push('/')
+        // router.push('/')
       }
     } catch (err) {
       setAppStatus('error')
@@ -156,7 +156,7 @@ export const AppProvider = ({ children }) => {
 
       setAppStatus('connected')
     } catch (error) {
-      router.push('/')
+      // router.push('/')
       setAppStatus('error')
     }
   }

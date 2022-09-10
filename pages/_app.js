@@ -9,7 +9,7 @@ function MyApp({ Component, pageProps }) {
     <MoralisProvider initializeOnMount={false}>
       <NotificationProvider>
         <AppProvider>
-            <Component {...pageProps} />
+          <Component {...pageProps} />
         </AppProvider>
       </NotificationProvider>
     </MoralisProvider>
