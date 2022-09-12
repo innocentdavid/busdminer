@@ -6,7 +6,6 @@ export default async function createUser(req, res) {
     await client.create({
       _type: 'user',
       walletAddress,
-      publishedAt: new Date()
     })
   } catch (err) {
     console.error(err)

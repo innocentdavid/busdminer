@@ -9,30 +9,14 @@ export default {
       type: 'string',
     },
     {
-      name: 'user',
-      title: 'User Wallet Address',
-      type: 'reference',
-      to: {type: 'user'},
-      validation: (Rule) => Rule.required(),
+      name: 'userWallet',
+      title: 'User Wallet',
+      type: 'string',
     },
     {
       name: 'lid',
       title: 'Lottery Id',
       type: 'string',
-      validation: (Rule) => Rule.required(),
-    },
-    // {
-    //   name: 'lid',
-    //   title: 'Lottery Id',
-    //   type: 'reference',
-    //   to: {type: 'lottery'},
-    //   validation: (Rule) => Rule.required(),
-    // },
-    {
-      name: 'publishedAt',
-      title: 'Published at',
-      type: 'datetime',
-      validation: (Rule) => Rule.required(),
     },
   ],
 

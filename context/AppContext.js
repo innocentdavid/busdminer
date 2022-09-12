@@ -24,6 +24,7 @@ export const AppProvider = ({ children }) => {
   }, [])
 
   const accountsChangeHandler = () => {
+    console.log('accountsChangeHandler')
     checkIfWalletIsConnected()
     if (currentAccount) {
       getCurrentUserDetails(currentAccount)
@@ -33,6 +34,7 @@ export const AppProvider = ({ children }) => {
   }
 
   const chainChangeHandler = () => {
+    console.log('chainChangeHandler')
     window.location.reload()
   }
 
@@ -83,12 +85,16 @@ export const AppProvider = ({ children }) => {
         method: 'eth_requestAccounts',
       })
 
+      // console.log('connectWallet wa', addressArray)
+
       if (addressArray.length > 0) {
         setCurrentAccount(addressArray[0])
-        createUserAccount(addressArray[0])
-        getUserBalance(addressArray[0])
+        await getUserBalance(addressArray[0])
+        await createUserAccount(addressArray[0])
+        // console.log(ethers.utils.formatBytes32String(addressArray[0]))
       } else {
         // alert('notConnected')
+        console.log('err connectWallet wa', addressArray?.length)
         setAppStatus('notConnected')
         // router.push('/')
       }
@@ -103,21 +109,21 @@ export const AppProvider = ({ children }) => {
 
       const addressArray = await window.ethereum.request({
         method: 'eth_requestAccounts',
-        params: [{eth_accounts: {}}]
+        params: [{ eth_accounts: {} }]
       })
 
       // if (addressArray.length > 0) {
-      //   console.log({addressArray})
+      console.log({ addressArray })
       //   setCurrentAccount(addressArray[0])
       //   createUserAccount(addressArray[0])
       //   getUserBalance(addressArray[0])
       // } else {
-        setCurrentAccount(null)
-        createUserAccount(null)
-        setUserBalance(0)
-        // alert('notConnected')
-        setAppStatus('notConnected')
-        // router.push('/')
+      setCurrentAccount(null)
+      createUserAccount(null)
+      setUserBalance(0)
+      // alert('notConnected')
+      setAppStatus('notConnected')
+      // router.push('/')
       // }
     } catch (err) {
       setAppStatus('error')
@@ -131,8 +137,8 @@ export const AppProvider = ({ children }) => {
     const balance = await window.ethereum.request({
       method: 'eth_getBalance', params: [account, 'latest']
     })
-    // console.log(balance)
-    balance && setUserBalance(ethers.utils.formatEther(balance))
+    const b = ethers.utils.formatEther(balance)
+    b && setUserBalance(b)
   }
 
   /**
@@ -143,21 +149,20 @@ export const AppProvider = ({ children }) => {
     if (!window.ethereum) return setAppStatus('noMetaMask')
     try {
       const userDoc = {
-        _type: 'users',
+        _type: 'user',
         _id: userAddress,
-        name: 'Unnamed',
-        isProfileImageNft: false,
-        profileImage:
-          'https://about.App.com/content/dam/about-App/en/brand-toolkit/brand-download-img-1.jpg.twimg.1920.jpg',
         walletAddress: userAddress,
       }
 
-      await client.createIfNotExists(userDoc)
-
+      const newUser = await client.createIfNotExists(userDoc)
+      setCurrentUser(newUser)
+      // console.log({newUser})
       setAppStatus('connected')
+      return { message: 'success' }
     } catch (error) {
       // router.push('/')
       setAppStatus('error')
+      return { message: 'error', error }
     }
   }
 
@@ -178,48 +183,48 @@ export const AppProvider = ({ children }) => {
   /**
    * Gets all the tweets stored in Sanity DB.
    */
-  const fetchTweets = async () => {
-    const query = `
-      *[_type == "tweets"]{
-        "author": author->{name, walletAddress, profileImage, isProfileImageNft},
-        tweet,
-        timestamp
-      }|order(timestamp desc)
-    `
+  // const fetchTweets = async () => {
+  //   const query = `
+  //     *[_type == "tweets"]{
+  //       "author": author->{name, walletAddress, profileImage, isProfileImageNft},
+  //       tweet,
+  //       timestamp
+  //     }|order(timestamp desc)
+  //   `
 
-    // setTweets(await client.fetch(query))
+  //   // setTweets(await client.fetch(query))
 
-    const sanityResponse = await client.fetch(query)
+  //   const sanityResponse = await client.fetch(query)
 
-    setTweets([])
+  //   setTweets([])
 
-    /**
-     * Async await not available with for..of loops.
-     */
-    sanityResponse.forEach(async item => {
-      const profileImageUrl = await getNftProfileImage(
-        item.author.profileImage,
-        item.author.isProfileImageNft,
-      )
+  //   /**
+  //    * Async await not available with for..of loops.
+  //    */
+  //   sanityResponse.forEach(async item => {
+  //     const profileImageUrl = await getNftProfileImage(
+  //       item.author.profileImage,
+  //       item.author.isProfileImageNft,
+  //     )
 
-      if (item.author.isProfileImageNft) {
-        const newItem = {
-          tweet: item.tweet,
-          timestamp: item.timestamp,
-          author: {
-            name: item.author.name,
-            walletAddress: item.author.walletAddress,
-            profileImage: profileImageUrl,
-            isProfileImageNft: item.author.isProfileImageNft,
-          },
-        }
+  //     if (item.author.isProfileImageNft) {
+  //       const newItem = {
+  //         tweet: item.tweet,
+  //         timestamp: item.timestamp,
+  //         author: {
+  //           name: item.author.name,
+  //           walletAddress: item.author.walletAddress,
+  //           profileImage: profileImageUrl,
+  //           isProfileImageNft: item.author.isProfileImageNft,
+  //         },
+  //       }
 
-        setTweets(prevState => [...prevState, newItem])
-      } else {
-        setTweets(prevState => [...prevState, item])
-      }
-    })
-  }
+  //       setTweets(prevState => [...prevState, newItem])
+  //     } else {
+  //       setTweets(prevState => [...prevState, item])
+  //     }
+  //   })
+  // }
 
   /**
    * Gets the current user details from Sanity DB.
@@ -230,30 +235,10 @@ export const AppProvider = ({ children }) => {
     if (appStatus !== 'connected') return;
 
     const query = `
-      *[_type == "users" && _id == "${userAccount}"]{
-        "tweets": tweets[]->{timestamp, tweet}|order(timestamp desc),
-        name,
-        profileImage,
-        isProfileImageNft,
-        coverImage,
-        walletAddress
-      }
+      *[_type == "user" && _id == "${userAccount}"][0]
     `
     const response = await client.fetch(query)
-
-    const profileImageUri = await getNftProfileImage(
-      response[0].profileImage,
-      response[0].isProfileImageNft,
-    )
-
-    setCurrentUser({
-      tweets: response[0].tweets,
-      name: response[0].name,
-      profileImage: profileImageUri,
-      walletAddress: response[0].walletAddress,
-      coverImage: response[0].coverImage,
-      isProfileImageNft: response[0].isProfileImageNft,
-    })
+    setCurrentUser(response)
   }
 
   /**
@@ -263,11 +248,14 @@ export const AppProvider = ({ children }) => {
 
   const fetchCurrentLottery = async () => {
     const query = `
-      *[_type == "lottery" && current == true] | order(_createdAt desc)
+      *[_type == "lottery" && current == true] | order(_createdAt desc)[0]
      `
-
-    setCurrentLottery(await client.fetch(query))
-    return;
+    const res = await client.fetch(query).catch(err => {
+      return { message: 'error', err }
+    })
+    // console.log({res})
+    setCurrentLottery(res)
+    return { message: 'success' }
   }
 
   /**
@@ -279,8 +267,11 @@ export const AppProvider = ({ children }) => {
     const query = `
       *[_type == "lottery" && current == true] | order(_createdAt desc)
      `
-
-    setLastLottery(await client.fetch(query))
+    const res = await client.fetch(query).catch(err => {
+      return { message: 'error', err }
+    })
+    // console.log({res})
+    setLastLottery(res)
     return;
   }
 
@@ -292,10 +283,7 @@ export const AppProvider = ({ children }) => {
         userBalance,
         connectWallet,
         disconnectWallet,
-        tweets,
-        fetchTweets,
         setAppStatus,
-        getNftProfileImage,
         currentUser,
         getCurrentUserDetails,
         fetchCurrentLottery,

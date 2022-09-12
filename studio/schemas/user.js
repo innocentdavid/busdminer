@@ -2,6 +2,9 @@ export default {
   name: 'user',
   title: 'User',
   type: 'document',
+  initialValue: {
+    ticket: 0
+  },
   fields: [
     {
       name: 'walletAddress',
@@ -9,16 +12,22 @@ export default {
       type: 'string',
     },
     {
-      name: 'publishedAt',
-      title: 'Published at',
-      type: 'datetime',
-      validation: (Rule) => Rule.required(),
+      name: 'ticket',
+      title: 'Ticket',
+      type: 'number',
     },
   ],
 
   preview: {
     select: {
-      title: 'walletAddress'
+      title: 'walletAddress',
+      ticket: 'ticket',
+    },
+    prepare(selection) {
+      const {ticket} = selection
+      return Object.assign({}, selection, {
+        subtitle: ticket
+      })
     }
   }
 }

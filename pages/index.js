@@ -19,7 +19,10 @@ import Link from "next/link";
 
 export default function Home() {
   const router = useRouter()
-  const { appStatus, connectWallet, disconnectWallet, currentAccount, userBalance, fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery } = useContext(AppContext)
+  const { appStatus, connectWallet, disconnectWallet, currentAccount, userBalance, currentUser, fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery } = useContext(AppContext)
+
+  const [ticketBuy, setTicketBuy] = useState()
+  const [ticketPlay, setTicketPlay] = useState()
 
   if (appStatus === 'loading') {
     return (
@@ -29,9 +32,8 @@ export default function Home() {
     )
   }
 
-  var countDate = new Date("Sep 7, 2022 00:00:00").getTime();
-
-  const countDown = () => {
+  const countDown = (countDate) => {
+    if (!countDate) return;
     var now = new Date().getTime();
     var gap = countDate - now;
     var second = 1000;
@@ -64,10 +66,11 @@ export default function Home() {
 
   useEffect(() => {
     const count = setInterval(() => {
-      countDown()
+      var countDate = new Date(currentLottery.start).getTime();
+      countDown(countDate)
     }, 1000);
     return () => clearInterval(count);
-  }, [])
+  }, [currentLottery])
 
   useEffect(() => {
     const fetch = async () => {
@@ -100,8 +103,8 @@ export default function Home() {
         </div>
         :
         <div className="flex flex-col text-end">
-          <div className="font-bold select-none">{currentAccount && formatWalletAddress(currentAccount)} | ${userBalance}</div>
-          <div className="text-sm font-semibold">Ticket: <span className="font-bold">0</span></div>
+          <div className="font-bold select-none">{currentAccount && formatWalletAddress(currentAccount)} | ${parseFloat(userBalance).toFixed(4)}</div>
+          <div className="text-sm font-semibold">Ticket: <span className="font-bold">{currentUser?.ticket}</span></div>
           {/* <FiLogOut className="cursor-pointer" onClick={disconnectWallet} /> */}
         </div>}
     </nav>
@@ -120,7 +123,7 @@ export default function Home() {
 
         <div className="flex flex-col md:flex-row gap-6 mt-7">
           <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
-          onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </a>
+            onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </a>
 
           {/* by referral action */}
 
@@ -155,11 +158,11 @@ export default function Home() {
           <div className=""><FcSpeaker size="30px" /></div>
           <div className="flex items-center">
             <marquee behavior="" direction="">
-              {lastLottery?.map((data, index) => {
+              {/* {lastLottery && lastLottery?.map((data, index) => {
                 return (
-                  <span key={index + 1}>congrats {data?.winner && formatWalletAddress(data?.winner)}0x34d***sg32 won ${prize}2, 440 | </span>
+                  <span key={index + 1}>congrats {data?.winner && formatWalletAddress(data?.winner)}0x34d***sg32 won ${data?.prize}2, 440 | </span>
                 )
-              })}
+              })} */}
               <span>congrats 0x34d***sg32 won $2, 440 | </span>
               <span>congrats 0x34d***sg32 won $2, 440 | </span>
               <span>congrats 0x34d***sg32 won $2, 440 | </span>
@@ -178,11 +181,12 @@ export default function Home() {
         <p align="center">Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur.</p>
 
         <a href="#" className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
-        onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </a>
+          onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </a>
       </section>
 
       <section className="grid place-items-center mt-8">
-        <div className="countdown flex justify-center gap-2 md:gap-10 mt-[50px] pb-10 w-full overflow-auto">
+        <div className="mt-[50px] mb-1">Next one starts in:</div>
+        <div className="countdown flex justify-center gap-2 md:gap-10 pb-10 w-full overflow-auto">
           <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
             <div id="day" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">0</div>
             <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Days</div>
@@ -201,9 +205,9 @@ export default function Home() {
           </div>
         </div>
 
-        <h1 className="mt-5 text-3xl">Available slot <span className="py-1 px-2 bg-white font-bold">{currentLottery?.totalTicket}20</span></h1>
+        <h1 className="mt-5 text-3xl">Available slot <span className="py-1 px-2 bg-white font-bold">{currentLottery?.totalTicket}</span></h1>
 
-        <p className="md:text-xl text-base font-bold mt-5">Top deposited price: <span>${currentLottery?.topDeposited}7, 000.49</span></p>
+        {currentLottery?.topDeposited && <p className="md:text-xl text-base font-bold mt-5">Top deposited price: <span>${currentLottery?.topDeposited}</span></p>}
 
         <div className="flex gap-5 my-5 px-3 lg:px-[25%]">
           <div className="w-[5px] border-l-[3px] border-[#fff]"></div>
@@ -221,17 +225,44 @@ export default function Home() {
 
     <footer className={styles.footer}>
       {/* <Link href="/"><a> */}
-          <div>Powered by <a href="tel:8112659304" className="font-bold">BINANCE MINERS</a></div>
-        {/* </a></Link> */}
+      <div>Powered by <a href="tel:8112659304" className="font-bold">BINANCE MINERS</a></div>
+      {/* </a></Link> */}
     </footer>
 
-    {router?.query?.buyTicket && <BuyTicket router={router} />}
-    {router?.query?.play && <Play router={router} />}
+    {router?.query?.buyTicket && <BuyTicket router={router} currentUser={currentUser} userBalance={userBalance}
+      setTicketBuy={setTicketBuy}
+      ticketBuy={ticketBuy}
+    />}
+    {router?.query?.play && <Play
+      router={router}
+      currentUser={currentUser}
+      currentLottery={currentLottery}
+      setTicketPlay={setTicketPlay}
+      ticketPlay={ticketPlay}
+    />}
   </div>)
 }
 
 
-const Play = ({ router }) => {
+const Play = ({ router, currentUser, currentLottery, setTicketPlay, ticketPlay }) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if(!currentUser) return;    
+
+    const res = await fetch('/api/play', {
+      method: 'POST',
+      body: JSON.stringify({ user: currentUser, lotteryId: currentLottery?._id, ticket: ticketPlay}),
+      type: 'application/json'
+    })
+    const resp = await res.json()
+    if (res.status == 200) {
+      // router.reload();
+      router.replace('/')
+      return;
+    }else{
+      console.log(resp)
+    }
+  }
 
   return (<>
     <div className="z-50">
@@ -243,10 +274,14 @@ const Play = ({ router }) => {
           <div className="">SHOW IMG</div>
         </div>
         <div className="body rounded-b-lg bg-white p-2">
-          <div className="text-right text-sm">Available slots <span className="font-bold">300</span></div>
-          <form className="mt-6 px-[30%]">
+          <div className="text-right text-sm">Available slots <span className="font-bold">{currentLottery?.totalTicket}</span></div>
+          <form className="mt-6 px-[30%]" onSubmit={handleSubmit}>
             <div>
               <input type="number" placeholder="1 ticket per slot"
+                min={0}
+                max={currentLottery?.totalTicket}
+                onChange={(e) => { setTicketPlay(e.target.value) }}
+                value={ticketPlay}
                 className="w-full outline-none border-b" />
             </div>
             <div className="mt-5 flex justify-end">
@@ -259,8 +294,8 @@ const Play = ({ router }) => {
           <div className="border-b mt-8"></div>
 
           <div className="text-center text-sm">
-            <div>You have 0 Ticket(s)</div>
-            <div><Link href="/?buyticket=1"><a className="text-blue-600">Buy More</a></Link></div>
+            <div>You have {currentUser?.ticket} Ticket(s)</div>
+            <div><Link href="/?buyTicket=1"><a className="text-blue-600">Buy More</a></Link></div>
           </div>
         </div>
       </div>
@@ -268,7 +303,25 @@ const Play = ({ router }) => {
   </>)
 }
 
-const BuyTicket = ({ router }) => {
+const BuyTicket = ({ router, currentUser, userBalance, setTicketBuy, ticketBuy }) => {
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    if(!currentUser) return;    
+
+    const res = await fetch('/api/buy', {
+      method: 'POST',
+      body: JSON.stringify({ user: currentUser, balance: userBalance, ticket: ticketBuy}),
+      type: 'application/json'
+    })
+    const resp = await res.json()
+    if (res.status == 200) {
+      // router.reload();
+      router.replace('/')
+      return;
+    }else{
+      console.log(resp)
+    }
+  }
 
   return (<>
     <div className="z-50">
@@ -281,10 +334,14 @@ const BuyTicket = ({ router }) => {
           <div>$1 per ticket</div>
         </div>
         <div className="body rounded-b-lg bg-white py-4">
-          <form className="px-[20%]">
+          <form className="px-[20%]" onSubmit={handleSubmit}>
             <div>
               <div>Number of Tickets</div>
               <input type="number" placeholder="Enter number of tickets"
+                min={0}
+                max={userBalance}
+                onChange={(e) => { setTicketBuy(e.target.value) }}
+                value={ticketBuy}
                 className="w-full outline-none" />
             </div>
             <div className="mt-6">
@@ -296,8 +353,10 @@ const BuyTicket = ({ router }) => {
           <div className="border-b mt-8"></div>
 
           <div className="text-center text-sm">
-            <div>Your Balance: <span>${userBalance}</span></div>
-            <div><Link href="/?buyticket=1"><a className="text-blue-600">Buy More</a></Link></div>
+            <div>You have {currentUser?.ticket} ticket currently
+              {/* <Link href="/?buyticket=1"><a className="text-blue-600">Buy More</a></Link> */}
+            </div>
+            <div className="text-[.8rem] font-[fona]">Your Balance: <span>${userBalance}</span></div>
           </div>
         </div>
       </div>
