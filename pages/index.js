@@ -24,14 +24,6 @@ export default function Home() {
   const [ticketBuy, setTicketBuy] = useState()
   const [ticketPlay, setTicketPlay] = useState()
 
-  if (appStatus === 'loading') {
-    return (
-      <div className="">
-        <div className="">Loading<span className="animate-ping">...</span></div>
-      </div>
-    )
-  }
-
   const countDown = (countDate) => {
     if (!countDate) return;
     var now = new Date().getTime();
@@ -80,6 +72,14 @@ export default function Home() {
     fetch()
   }, [])
 
+  if (appStatus === 'loading') {
+    return (
+      <div className="">
+        <div className="">Loading<span className="animate-ping">...</span></div>
+      </div>
+    )
+  }
+
   return (<div className={`bg-[#ffa500] md:px-8 py-4 px-4`}>
     <Head>
       <title>BUSD MINER</title>
@@ -114,7 +114,7 @@ export default function Home() {
     <div className={`${styles.main}`}>
       <section className="mt-10 pb-16 grid place-items-center border-b-2">
         <h1 className={`${styles.title} text-[2.5rem] lg:text-[4rem] font-bold`}>
-          Welcome to the <a href="#" className="text-[#0070f3]">BUSD MINER LOTTRY!</a>
+          Welcome to the <span className="text-[#0070f3]">BUSD MINER LOTTRY!</span>
         </h1>
 
         <p className="my-3 text-[1.25rem] md:text-[1.2rem] font-['Poppins'] text-center px-1">
@@ -122,13 +122,13 @@ export default function Home() {
         </p>
 
         <div className="flex flex-col md:flex-row gap-6 mt-7">
-          <a href="#" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
-            onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </a>
+          <span className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
+            onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </span>
 
           {/* by referral action */}
 
-          <a href="/?buyTicket=1" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 border py-2 px-4  hover:text-[#0070f3] cursor-pointer"
-            onClick={(e) => { e.preventDefault(); router.replace('/?buyTicket=1') }}>BUY A TICKET <FaTicketAlt /></a>
+          <span className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 border py-2 px-4  hover:text-[#0070f3] cursor-pointer"
+            onClick={(e) => { e.preventDefault(); router.replace('/?buyTicket=1') }}>BUY A TICKET <FaTicketAlt /></span>
         </div>
       </section>
 
@@ -180,8 +180,8 @@ export default function Home() {
 
         <p align="center">Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur.</p>
 
-        <a href="#" className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
-          onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </a>
+        <span className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
+          onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </span>
       </section>
 
       <section className="grid place-items-center mt-8">
@@ -215,8 +215,8 @@ export default function Home() {
         </div>
 
         <div className="mt-5 flex flex-col md:flex-row items-center gap-3">
-          <a href="" className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-1 px-3 hover:text-[#0070f3] cursor-pointer"
-            onClick={(e) => { e.preventDefault(); router.replace('/?buyTicket=1') }}>Buy Ticket </a>
+          <span className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-1 px-3 hover:text-[#0070f3] cursor-pointer"
+            onClick={(e) => { e.preventDefault(); router.replace('/?buyTicket=1') }}>Buy Ticket </span>
 
           {/* <a href="#" className="hover:text-[#0070f3]">Refer to earn free ticket</a> */}
         </div>
@@ -225,7 +225,7 @@ export default function Home() {
 
     <footer className={styles.footer}>
       {/* <Link href="/"><a> */}
-      <div>Powered by <a href="tel:8112659304" className="font-bold">BINANCE MINERS</a></div>
+      <div>Powered by <span className="font-bold">BINANCE MINERS</span></div>
       {/* </a></Link> */}
     </footer>
 
