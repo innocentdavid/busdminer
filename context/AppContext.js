@@ -23,13 +23,13 @@ export const AppProvider = ({ children }) => {
     }
   }, [])
 
-  const accountsChangeHandler = () => {
+  const accountsChangeHandler = async () => {
     console.log('accountsChangeHandler')
     checkIfWalletIsConnected()
     if (currentAccount) {
-      getCurrentUserDetails(currentAccount)
-      createUserAccount(currentAccount)
-      getUserBalance(currentAccount)
+      await getCurrentUserDetails(currentAccount)
+      await createUserAccount(currentAccount)
+      await getUserBalance(currentAccount)
     }
   }
 
@@ -119,7 +119,7 @@ export const AppProvider = ({ children }) => {
       //   getUserBalance(addressArray[0])
       // } else {
       setCurrentAccount(null)
-      createUserAccount(null)
+      // createUserAccount(null)
       setUserBalance(0)
       // alert('notConnected')
       setAppStatus('notConnected')
@@ -139,6 +139,8 @@ export const AppProvider = ({ children }) => {
     })
     const b = ethers.utils.formatEther(balance)
     b && setUserBalance(b)
+    console.log({b})
+    return b
   }
 
   /**
@@ -155,8 +157,8 @@ export const AppProvider = ({ children }) => {
       }
 
       const newUser = await client.createIfNotExists(userDoc)
-      setCurrentUser(newUser)
-      // console.log({newUser})
+      newUser && setCurrentUser(newUser);
+      console.log({newUser})
       setAppStatus('connected')
       return { message: 'success' }
     } catch (error) {
