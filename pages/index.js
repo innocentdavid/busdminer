@@ -19,7 +19,8 @@ import Link from "next/link";
 
 export default function Home() {
   const router = useRouter()
-  const { appStatus, connectWallet, disconnectWallet, currentAccount, userBalance, currentUser, fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery } = useContext(AppContext)
+  const { appStatus, connectWallet, disconnectWallet, currentAccount, userBalance, getUserBalance, currentUser, fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery } = useContext(AppContext)
+  const [balance, setBalance] = useState(userBalance)
 
   const [ticketBuy, setTicketBuy] = useState()
   const [ticketPlay, setTicketPlay] = useState()
@@ -66,11 +67,13 @@ export default function Home() {
 
   useEffect(() => {
     const fetch = async () => {
+      const b = await getUserBalance(currentAccount)
+      b && setBalance(b)
       await fetchLastLottery()
       await fetchCurrentLottery()
     }
     fetch()
-  }, [])
+  }, [currentAccount])
 
   if (appStatus === 'loading') {
     return (
@@ -103,7 +106,7 @@ export default function Home() {
         </div>
         :
         <div className="flex flex-col text-end">
-          <div className="font-bold select-none">{currentAccount && formatWalletAddress(currentAccount)} | ${parseFloat(userBalance).toFixed(4)}</div>
+          <div className="font-bold select-none">{currentAccount && formatWalletAddress(currentAccount)} | ${parseFloat(balance).toFixed(4)}</div>
           <div className="text-sm font-semibold">Ticket: <span className="font-bold">{currentUser?.ticket}</span></div>
           {/* <FiLogOut className="cursor-pointer" onClick={disconnectWallet} /> */}
         </div>}
@@ -229,7 +232,7 @@ export default function Home() {
       {/* </a></Link> */}
     </footer>
 
-    {router?.query?.buyTicket && <BuyTicket router={router} currentUser={currentUser} userBalance={userBalance}
+    {router?.query?.buyTicket && <BuyTicket router={router} currentUser={currentUser} userBalance={balance}
       setTicketBuy={setTicketBuy}
       ticketBuy={ticketBuy}
     />}
@@ -303,14 +306,14 @@ const Play = ({ router, currentUser, currentLottery, setTicketPlay, ticketPlay }
   </>)
 }
 
-const BuyTicket = ({ router, currentUser, userBalance, setTicketBuy, ticketBuy }) => {
+const BuyTicket = ({ router, currentUser, balance, setTicketBuy, ticketBuy }) => {
 const handleSubmit = async (e) => {
     e.preventDefault();
     if(!currentUser) return;    
 
     const res = await fetch('/api/buy', {
       method: 'POST',
-      body: JSON.stringify({ user: currentUser, balance: userBalance, ticket: ticketBuy}),
+      body: JSON.stringify({ user: currentUser, balance: balance, ticket: ticketBuy}),
       type: 'application/json'
     })
     const resp = await res.json()
@@ -339,7 +342,7 @@ const handleSubmit = async (e) => {
               <div>Number of Tickets</div>
               <input type="number" placeholder="Enter number of tickets"
                 min={0}
-                max={userBalance}
+                max={balance}
                 onChange={(e) => { setTicketBuy(e.target.value) }}
                 value={ticketBuy}
                 className="w-full outline-none" />
@@ -356,7 +359,7 @@ const handleSubmit = async (e) => {
             <div>You have {currentUser?.ticket} ticket currently
               {/* <Link href="/?buyticket=1"><a className="text-blue-600">Buy More</a></Link> */}
             </div>
-            <div className="text-[.8rem] font-[fona]">Your Balance: <span>${userBalance}</span></div>
+            <div className="text-[.8rem] font-[fona]">Your Balance: <span>${balance}</span></div>
           </div>
         </div>
       </div>

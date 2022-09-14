@@ -139,7 +139,7 @@ export const AppProvider = ({ children }) => {
     })
     const b = ethers.utils.formatEther(balance)
     b && setUserBalance(b)
-    console.log({b})
+    // console.log({b})
     return b
   }
 
@@ -285,6 +285,7 @@ export const AppProvider = ({ children }) => {
         userBalance,
         connectWallet,
         disconnectWallet,
+        getUserBalance,
         setAppStatus,
         currentUser,
         getCurrentUserDetails,
