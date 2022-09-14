@@ -10,16 +10,26 @@ import { ConnectButton } from "web3uikit";
 import { FaTicketAlt } from 'react-icons/fa'
 import { FcSpeaker } from 'react-icons/fc'
 import { FiCopy } from 'react-icons/fi'
-import { AppContext } from "../context/AppContext";
-import { useContext } from "react";
-import { FiLogOut } from 'react-icons/fi'
+// import { AppContext } from "../context/AppContext";
+// import { useContext } from "react";
 import { formatWalletAddress } from "../lib/functions";
 import { useRouter } from "next/router";
 import Link from "next/link";
 
 export default function Home() {
   const router = useRouter()
-  const { appStatus, connectWallet, disconnectWallet, currentAccount, userBalance, getUserBalance, currentUser, fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery } = useContext(AppContext)
+  // const { appStatus, connectWallet, disconnectWallet, currentAccount, userBalance, getUserBalance, currentUser, fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery } = useContext(AppContext)
+  var appStatus, 
+    connectWallet, 
+    disconnectWallet, 
+    currentAccount, 
+    userBalance, 
+    getUserBalance, 
+    currentUser, 
+    fetchLastLottery, 
+    lastLottery, 
+    fetchCurrentLottery, 
+    currentLottery;
   const [balance, setBalance] = useState(userBalance)
 
   const [ticketBuy, setTicketBuy] = useState()
@@ -59,10 +69,12 @@ export default function Home() {
 
   useEffect(() => {
     const count = setInterval(() => {
-      var countDate = new Date(currentLottery.start).getTime();
+      var countDate = new Date(currentLottery?.start).getTime();
       countDown(countDate)
     }, 1000);
-    return () => clearInterval(count);
+    if(currentLottery){
+      // return () => clearInterval(count);
+    }
   }, [currentLottery])
 
   useEffect(() => {
@@ -72,7 +84,7 @@ export default function Home() {
       await fetchLastLottery()
       await fetchCurrentLottery()
     }
-    fetch()
+    // fetch()
   }, [currentAccount])
 
   if (appStatus === 'loading') {
@@ -101,8 +113,8 @@ export default function Home() {
       {appStatus === 'notConnected' ?
         <div className="flex gap-3 cursor-pointer border hover:border-[#ffa500] px-4 py-1 rounded-full" onClick={() => connectWallet()}>
           <Image src="/images/metamask.png" width={'20px'} height={'20px'} />
-          <div className="font-bold">Connect Wallet</div>
-          {/* <div className="">Connect to Metamask.</div> */}
+          {/* <div className="font-bold">Connect Wallet</div> */}
+          <div className=""><ConnectButton /></div>
         </div>
         :
         <div className="flex flex-col text-end">
@@ -149,13 +161,13 @@ export default function Home() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <div className="text-red-600"><AiOutlineStar size="20px" /></div>
-            <span className="text-white">{lastLottery[1]?.winner && formatWalletAddress(lastLottery[1]?.winner)}0xE***35df</span>
+            <span className="text-white">{lastLottery && lastLottery[1]?.winner && formatWalletAddress(lastLottery[1]?.winner)}0xE***35df</span>
           </div>
 
           <div className="cursor-pointer"><FiCopy /></div>
         </div>
 
-        <div><strong>{lastLottery[1]?.prize}700 BUSD</strong></div>
+        <div><strong>{lastLottery && lastLottery[1]?.prize}700 BUSD</strong></div>
 
         <div className="flex items-center gap-2 mt-2 mb-5 px-20">
           <div className=""><FcSpeaker size="30px" /></div>
