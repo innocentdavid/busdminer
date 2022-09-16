@@ -17,8 +17,12 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     if (window) {
-      window.ethereum.on('accountsChange', accountsChangeHandler)
-      window.ethereum.on('chainChange', chainChangeHandler)
+      const et = window.ethereum;
+      alert("No MetaMask!")
+      if (!et) return setAppStatus('noMetaMask');
+
+      et.on('accountsChange', accountsChangeHandler)
+      et.on('chainChange', chainChangeHandler)      
     }
   }, [])
 
@@ -103,6 +107,7 @@ export const AppProvider = ({ children }) => {
   }
 
   const disconnectWallet = async () => {
+    if (!window.ethereum) return setAppStatus('noMetaMask')
     try {
       setAppStatus('loading')
 
@@ -133,6 +138,7 @@ export const AppProvider = ({ children }) => {
    * Get current user's balance
    */
   const getUserBalance = async (account) => {
+    if (!window.ethereum) return setAppStatus('noMetaMask')
     const balance = await window.ethereum.request({
       method: 'eth_getBalance', params: [account, 'latest']
     })
