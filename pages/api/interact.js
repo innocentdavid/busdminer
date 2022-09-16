@@ -1,6 +1,7 @@
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 
 const web3 = createAlchemyWeb3(process.env.NEXT_PUBLIC_BSC_RPC_URL);
+import client from "./config";
 import { dappconfig } from "./dapp.config";
 
 const contract = require("../artifacts/contracts/Raffle.sol/Raffle.json");
@@ -43,7 +44,7 @@ export const enterRaffle = async (ticketAmount) => {
   if (!window.ethereum.selectedAddress) {
     return {
       success: false,
-      status: "To be able to mint, you need to connect your wallet",
+      status: "To be able to play, you need to connect your wallet",
     };
   }
 
@@ -71,15 +72,22 @@ export const enterRaffle = async (ticketAmount) => {
       params: [tx],
     });
 
-    return {
-      success: true,
-      status: (
-        <a href={`https://rinkeby.etherscan.io/tx/${txHash}`} target="_blank">
-          <p>✅ Check out your transaction on Etherscan:</p>
-          <p>{`https://rinkeby.etherscan.io/tx/${txHash}`}</p>
-        </a>
-      ),
-    };
+    if (txHash) {
+      await client
+        .patch(user._id)
+        .inc({ ticket: parseInt(ticketAmount) })
+        .commit()
+
+      return {
+        success: true,
+        status: (
+          <a href={`https://rinkeby.etherscan.io/tx/${txHash}`} target="_blank">
+            <p>✅ Check out your transaction on Etherscan:</p>
+            <p>{`https://rinkeby.etherscan.io/tx/${txHash}`}</p>
+          </a>
+        ),
+      };
+    }
   } catch (error) {
     return {
       success: false,
