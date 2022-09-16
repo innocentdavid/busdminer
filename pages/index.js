@@ -1,28 +1,80 @@
 import React, { useEffect, useState } from "react";
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
-import { AiOutlineStar } from 'react-icons/ai'
-import { BiCaretRightCircle } from 'react-icons/bi'
-import { BsArrowRight } from 'react-icons/bs'
+import Head from "next/head";
+import Image from "next/image";
+import styles from "../styles/Home.module.css";
+import { AiOutlineStar } from "react-icons/ai";
+import { BiCaretRightCircle } from "react-icons/bi";
+import { BsArrowRight } from "react-icons/bs";
 import { IoMdMenu } from "react-icons/io";
 import { ConnectButton } from "web3uikit";
-import { FaTicketAlt } from 'react-icons/fa'
-import { FcSpeaker } from 'react-icons/fc'
-import { FiCopy } from 'react-icons/fi'
+import { FaTicketAlt } from "react-icons/fa";
+import { FcSpeaker } from "react-icons/fc";
+import { FiCopy } from "react-icons/fi";
 import { AppContext } from "../context/AppContext";
 import { useContext } from "react";
-import { FiLogOut } from 'react-icons/fi'
+import { FiLogOut } from "react-icons/fi";
 import { formatWalletAddress } from "../lib/functions";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import Web3 from "web3";
+import { ethers } from "ethers";
+import { enterRaffle } from "./api/interact";
+import { dappconfig } from "./api/dapp.config";
 
 export default function Home() {
-  const router = useRouter()
-  const { appStatus, connectWallet, disconnectWallet, currentAccount, userBalance, currentUser, fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery } = useContext(AppContext)
+  useEffect(() => {
+    // Web3 Browswer Detection
+    if (typeof window.ethereum !== "undefined") {
+      window.alert(
+        "Make sure you're connected to the BSC Main net",
+        "connect to proceed!",
+        "warning"
+      );
+      console.log("Injected Web3 Wallet is installed!");
+    }
 
-  const [ticketBuy, setTicketBuy] = useState()
-  const [ticketPlay, setTicketPlay] = useState()
+    //Connect Account Function
+    async function connectAccount() {
+      const accounts = await ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      window.alert("Connected", "You can now proceed!", "success");
+
+      const account = accounts[0];
+      connectButton.innerHTML =
+        account[0] +
+        account[1] +
+        account[2] +
+        account[3] +
+        account[4] +
+        account[5] +
+        "..." +
+        account[38] +
+        account[39] +
+        account[40] +
+        account[41];
+    }
+  }, []);
+
+  const router = useRouter();
+  const {
+    appStatus,
+    connectWallet,
+    disconnectWallet,
+    currentAccount,
+    userBalance,
+    currentUser,
+    fetchLastLottery,
+    lastLottery,
+    fetchCurrentLottery,
+    currentLottery,
+  } = useContext(AppContext);
+  const [ticketAmount, setTicketAmount] = useState(1);
+  const [isBuying, setIsBuying] = useState(false);
+  const [ticketBuy, setTicketBuy] = useState();
+  const [ticketPlay, setTicketPlay] = useState();
+  const [provider, setProvider] = useState({});
+  const [status, setStatus] = useState(null);
 
   const countDown = (countDate) => {
     if (!countDate) return;
@@ -33,333 +85,599 @@ export default function Home() {
     var hour = minute * 60;
     var day = hour * 24;
 
-    var d = Math.floor(gap / (day))
-    var h = Math.floor((gap % (day)) / (hour))
-    var m = Math.floor((gap % (hour)) / (minute))
-    var s = Math.floor((gap % (minute)) / (second))
+    var d = Math.floor(gap / day);
+    var h = Math.floor((gap % day) / hour);
+    var m = Math.floor((gap % hour) / minute);
+    var s = Math.floor((gap % minute) / second);
 
-    const dayN = document.getElementById('day')
+    const dayN = document.getElementById("day");
     if (dayN && d >= 0) {
-      dayN.innerText = d
+      dayN.innerText = d;
     }
-    const hourN = document.getElementById('hour')
+    const hourN = document.getElementById("hour");
     if (hourN && h >= 0) {
-      hourN.innerText = h
+      hourN.innerText = h;
     }
-    const minuteN = document.getElementById('minute')
+    const minuteN = document.getElementById("minute");
     if (minuteN && m >= 0) {
-      minuteN.innerText = m
+      minuteN.innerText = m;
     }
-    const secondN = document.getElementById('second')
+    const secondN = document.getElementById("second");
     if (secondN && s >= 0) {
-      secondN.innerText = s
+      secondN.innerText = s;
     }
-  }
+  };
 
   useEffect(() => {
     const count = setInterval(() => {
       var countDate = new Date(currentLottery.start).getTime();
-      countDown(countDate)
+      countDown(countDate);
     }, 1000);
     return () => clearInterval(count);
-  }, [currentLottery])
+  }, [currentLottery]);
 
   useEffect(() => {
     const fetch = async () => {
-      await fetchLastLottery()
-      await fetchCurrentLottery()
-    }
-    fetch()
-  }, [])
+      await fetchLastLottery();
+      await fetchCurrentLottery();
+    };
+    fetch();
+  }, []);
 
-  if (appStatus === 'loading') {
+  if (appStatus === "loading") {
     return (
       <div className="">
-        <div className="">Loading<span className="animate-ping">...</span></div>
+        <div className="">
+          Loading<span className="animate-ping">...</span>
+        </div>
       </div>
-    )
+    );
   }
+  // const config = {
+  //   contractAddress: "0x00000000000",
+  //   price: 0.01,
+  // };
 
-  return (<div className={`bg-[#ffa500] md:px-8 py-4 px-4`}>
-    <Head>
-      <title>BUSD MINER</title>
-      <meta name="description" content="Generated by create next app" />
-      <link rel="icon" href="/favicon.ico" />
-    </Head>
+  const incrementTicketAmount = () => {
+    if (ticketAmount > 0) {
+      setTicketAmount(ticketAmount + 1);
+    }
+  };
 
-    <nav className="flex justify-around items-center w-full h-16 bg-black text-white fixed top-0 left-0">
-      {/* <div className="cursor-pointer">
+  const decrementTicketAmount = () => {
+    if (ticketAmount > 1) {
+      setTicketAmount(ticketAmount - 1);
+    }
+  };
+
+  const enterRaffleHandler = async () => {
+    setIsBuying(true);
+
+    const { success, status } = await enterRaffle(ticketAmount);
+
+    setStatus({
+      success,
+      message: status,
+    });
+
+    setIsBuying(false);
+  };
+
+  return (
+    <div className={`bg-[#ffa500] md:px-8 py-4 px-4`}>
+      <Head>
+        <title>BUSD MINER</title>
+        <meta name="description" content="Generated by create next app" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
+      <nav className="flex justify-around items-center w-full h-16 bg-black text-white fixed top-0 left-0">
+        {/* <div className="cursor-pointer">
           <IoMdMenu size="30px" />
         </div> */}
-      <div className="">
-        <img src="/BUSD MINER_LOGO 22.png" alt="LOGO" width="60px" />
-      </div>
-      {/* <ConnectButton moralisAuth={false} /> */}
-      {appStatus === 'notConnected' ?
-        <div className="flex gap-3 cursor-pointer border hover:border-[#ffa500] px-4 py-1 rounded-full" onClick={() => connectWallet()}>
-          <Image src="/images/metamask.png" width={'20px'} height={'20px'} />
-          <div className="font-bold">Connect Wallet</div>
-          {/* <div className="">Connect to Metamask.</div> */}
-        </div>
-        :
-        <div className="flex flex-col text-end">
-          <div className="font-bold select-none">{currentAccount && formatWalletAddress(currentAccount)} | ${parseFloat(userBalance).toFixed(4)}</div>
-          <div className="text-sm font-semibold">Ticket: <span className="font-bold">{currentUser?.ticket}</span></div>
-          {/* <FiLogOut className="cursor-pointer" onClick={disconnectWallet} /> */}
-        </div>}
-    </nav>
-
-    <div className="mt-16"></div>
-
-    <div className={`${styles.main}`}>
-      <section className="mt-10 pb-16 grid place-items-center border-b-2">
-        <h1 className={`${styles.title} text-[2.5rem] lg:text-[4rem] font-bold`}>
-          Welcome to the <span className="text-[#0070f3]">BUSD MINER LOTTRY!</span>
-        </h1>
-
-        <p className="my-3 text-[1.25rem] md:text-[1.2rem] font-['Poppins'] text-center px-1">
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Autem unde expedita commodi beatae vel, eveniet quae.
-        </p>
-
-        <div className="flex flex-col md:flex-row gap-6 mt-7">
-          <span className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
-            onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </span>
-
-          {/* by referral action */}
-
-          <span className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 border py-2 px-4  hover:text-[#0070f3] cursor-pointer"
-            onClick={(e) => { e.preventDefault(); router.replace('/?buyTicket=1') }}>BUY A TICKET <FaTicketAlt /></span>
-        </div>
-      </section>
-
-      <section className="py-20 border-b-2">
-        <img src="/images/BUSD MINER_LOGO.png" alt="" />
-      </section>
-
-      <section className="grid place-items-center mt-10">
-        <div className="flex items-center gap-4">
-          <div className="md:w-20 w-10 h-[1px] border-b border-b-gray-600"></div>
-          <div className="font-bold text-2xl">Last Winner</div>
-          <div className="md:w-20 w-10 h-[1px] border-b border-b-gray-600"></div>
+        <div className="">
+          <img src="/BUSD MINER_LOGO 22.png" alt="LOGO" width="60px" />
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div className="text-red-600"><AiOutlineStar size="20px" /></div>
-            <span className="text-white">{lastLottery[1]?.winner && formatWalletAddress(lastLottery[1]?.winner)}0xE***35df</span>
+        {appStatus === "notConnected" ? (
+          <div
+            className="flex gap-3 cursor-pointer border hover:border-[#ffa500] px-4 py-1 rounded-full"
+            onClick={() => connectAccount()}
+          >
+            <Image src="/images/metamask.png" width={"20px"} height={"20px"} />
+            <div className="font-bold">Connect Wallet</div>
+            {/* <div className="">Connect to Metamask.</div> */}
+          </div>
+        ) : (
+          <div className="flex flex-col text-end">
+            <div className="font-bold select-none">
+              {currentAccount && formatWalletAddress(currentAccount)} | $
+              {parseFloat(userBalance).toFixed(4)}
+            </div>
+            <div className="text-sm font-semibold">
+              Ticket: <span className="font-bold">{currentUser?.ticket}</span>
+            </div>
+            {/* <FiLogOut className="cursor-pointer" onClick={disconnectWallet} /> */}
+          </div>
+        )}
+      </nav>
+
+      <div className="mt-16"></div>
+
+      <div className={`${styles.main}`}>
+        <section className="mt-10 pb-16 grid place-items-center border-b-2">
+          <h1
+            className={`${styles.title} text-[2.5rem] lg:text-[4rem] font-bold`}
+          >
+            Welcome to the{" "}
+            <span className="text-[#0070f3]">BUSD MINER LOTTRY!</span>
+          </h1>
+
+          <p className="my-3 text-[1.25rem] md:text-[1.2rem] font-['Poppins'] text-center px-1">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Autem unde
+            expedita commodi beatae vel, eveniet quae.
+          </p>
+
+          <div className="flex flex-col md:flex-row gap-6 mt-7">
+            <span
+              className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
+              onClick={(e) => {
+                e.preventDefault();
+                router.replace("/?play=1");
+              }}
+            >
+              PLAY NOW{" "}
+            </span>
+
+            {/* by referral action */}
+
+            <span
+              className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 border py-2 px-4  hover:text-[#0070f3] cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                router.replace("/?buyTicket=1");
+              }}
+            >
+              BUY A TICKET <FaTicketAlt />
+            </span>
+          </div>
+        </section>
+
+        <section className="py-20 border-b-2">
+          <img src="/images/BUSD MINER_LOGO.png" alt="" />
+        </section>
+
+        <section className="grid place-items-center mt-10">
+          <div className="flex items-center gap-4">
+            <div className="md:w-20 w-10 h-[1px] border-b border-b-gray-600"></div>
+            <div className="font-bold text-2xl">Last Winner</div>
+            <div className="md:w-20 w-10 h-[1px] border-b border-b-gray-600"></div>
           </div>
 
-          <div className="cursor-pointer"><FiCopy /></div>
-        </div>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="text-red-600">
+                <AiOutlineStar size="20px" />
+              </div>
+              <span className="text-white">
+                {lastLottery[1]?.winner &&
+                  formatWalletAddress(lastLottery[1]?.winner)}
+                0xE***35df
+              </span>
+            </div>
 
-        <div><strong>{lastLottery[1]?.prize}700 BUSD</strong></div>
+            <div className="cursor-pointer">
+              <FiCopy />
+            </div>
+          </div>
 
-        <div className="flex items-center gap-2 mt-2 mb-5 px-20">
-          <div className=""><FcSpeaker size="30px" /></div>
-          <div className="flex items-center">
-            <marquee behavior="" direction="">
-              {/* {lastLottery && lastLottery?.map((data, index) => {
+          <div>
+            <strong>{lastLottery[1]?.prize}700 BUSD</strong>
+          </div>
+
+          <div className="flex items-center gap-2 mt-2 mb-5 px-20">
+            <div className="">
+              <FcSpeaker size="30px" />
+            </div>
+            <div className="flex items-center">
+              <marquee behavior="" direction="">
+                {/* {lastLottery && lastLottery?.map((data, index) => {
                 return (
                   <span key={index + 1}>congrats {data?.winner && formatWalletAddress(data?.winner)}0x34d***sg32 won ${data?.prize}2, 440 | </span>
                 )
               })} */}
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-              <span>congrats 0x34d***sg32 won $2, 440 | </span>
-            </marquee>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+                <span>congrats 0x34d***sg32 won $2, 440 | </span>
+              </marquee>
+            </div>
           </div>
+
+          <p align="center">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur.
+          </p>
+
+          <span
+            className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
+            onClick={(e) => {
+              e.preventDefault();
+              router.replace("/?play=1");
+            }}
+          >
+            PLAY NOW{" "}
+          </span>
+          <div className="flex flex-col md:flex-row md:space-x-14 w-80 mt-10 md:mt-14">
+            <div className="flex flex-col items-center w-full px-4 mt-16 md:mt-0">
+              <div className="font-coiny flex items-center justify-between w-full">
+                <button
+                  className="w-14 h-10 md:w-16 md:h-12 flex items-center justify-center text-brand-background hover:shadow-lg bg-gray-300 font-bold rounded-md"
+                  onClick={incrementTicketAmount}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 md:h-8 md:w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                </button>
+
+                <p className="flex items-center justify-center flex-1 grow text-center font-bold text-brand-pink text-3xl md:text-4xl">
+                  {ticketAmount}
+                </p>
+
+                <button
+                  className="w-14 h-10 md:w-16 md:h-12 flex items-center justify-center text-brand-background hover:shadow-lg bg-gray-300 font-bold rounded-md"
+                  onClick={decrementTicketAmount}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 md:h-8 md:w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18 12H6"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-b py-4 mt-16 w-80">
+            <div className="w-full text-xl font-coiny flex items-center justify-between text-brand-yellow">
+              <p>Total</p>
+
+              <div className="flex items-center space-x-3">
+                <p>
+                  {Number.parseFloat(dappconfig.price * ticketAmount).toFixed(
+                    2
+                  )}{" "}
+                  ETH
+                </p>{" "}
+                <span className="text-gray-400">+ GAS</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row md:space-x-14 w-50 mt-10 md:mt-14">
+            <button
+              className="bg-black p-3 text-white rounded-lg flex justify-between items-center"
+              onClick={enterRaffleHandler}
+            >
+              {isBuying ? "joining raffle..." : "Enter Raffle"}
+            </button>
+          </div>
+        </section>
+
+        <section className="grid place-items-center mt-8">
+          <div className="mt-[50px] mb-1">Next one starts in:</div>
+          <div className="countdown flex justify-center gap-2 md:gap-10 pb-10 w-full overflow-auto">
+            <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
+              <div
+                id="day"
+                className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center "
+              >
+                0
+              </div>
+              <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">
+                Days
+              </div>
+            </div>
+            <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
+              <div
+                id="hour"
+                className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center "
+              >
+                0
+              </div>
+              <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">
+                Hours
+              </div>
+            </div>
+            <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
+              <div
+                id="minute"
+                className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center "
+              >
+                0
+              </div>
+              <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">
+                Minutes
+              </div>
+            </div>
+            <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
+              <div
+                id="second"
+                className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center "
+              >
+                0
+              </div>
+              <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">
+                Seconds
+              </div>
+            </div>
+          </div>
+
+          <h1 className="mt-5 text-3xl">
+            Available slot{" "}
+            <span className="py-1 px-2 bg-white font-bold">
+              {currentLottery?.totalTicket}
+            </span>
+          </h1>
+
+          {currentLottery?.topDeposited && (
+            <p className="md:text-xl text-base font-bold mt-5">
+              Top deposited price: <span>${currentLottery?.topDeposited}</span>
+            </p>
+          )}
+
+          <div className="flex gap-5 my-5 px-3 lg:px-[25%]">
+            <div className="w-[5px] border-l-[3px] border-[#fff]"></div>
+            <p className="mt-5">
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit.
+              Blanditiis hic esse reiciendis recusandae molestias ab
+              consequuntur ratione iure voluptate impedit. Inventore error eum
+              nisi aliquam. Magnam autem nulla beatae.
+            </p>
+          </div>
+
+          <div className="mt-5 flex flex-col md:flex-row items-center gap-3">
+            <span
+              className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-1 px-3 hover:text-[#0070f3] cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                router.replace("/?buyTicket=1");
+              }}
+            >
+              Buy Ticket{" "}
+            </span>
+
+            {/* <a href="#" className="hover:text-[#0070f3]">Refer to earn free ticket</a> */}
+          </div>
+        </section>
+      </div>
+
+      <footer className={styles.footer}>
+        {/* <Link href="/"><a> */}
+        <div>
+          Powered by <span className="font-bold">BINANCE MINERS</span>
         </div>
+        {/* </a></Link> */}
+      </footer>
 
-        <p align="center">Lorem ipsum dolor sit amet consectetur adipisicing elit. Pariatur.</p>
-
-        <span className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
-          onClick={(e) => { e.preventDefault(); router.replace('/?play=1') }}>PLAY NOW </span>
-      </section>
-
-      <section className="grid place-items-center mt-8">
-        <div className="mt-[50px] mb-1">Next one starts in:</div>
-        <div className="countdown flex justify-center gap-2 md:gap-10 pb-10 w-full overflow-auto">
-          <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
-            <div id="day" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">0</div>
-            <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Days</div>
-          </div>
-          <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
-            <div id="hour" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">0</div>
-            <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Hours</div>
-          </div>
-          <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
-            <div id="minute" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">0</div>
-            <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Minutes</div>
-          </div>
-          <div className="flex flex-col justify-center items-center w-[80px] lg:w-[130px]">
-            <div id="second" className="w-full bg-[#333] text-white text-[3rem] lg:text-[5rem] py-3 text-center ">0</div>
-            <div className="w-full bg-[#ff0] text-[#333] text-center py-2 px-4 ">Seconds</div>
-          </div>
-        </div>
-
-        <h1 className="mt-5 text-3xl">Available slot <span className="py-1 px-2 bg-white font-bold">{currentLottery?.totalTicket}</span></h1>
-
-        {currentLottery?.topDeposited && <p className="md:text-xl text-base font-bold mt-5">Top deposited price: <span>${currentLottery?.topDeposited}</span></p>}
-
-        <div className="flex gap-5 my-5 px-3 lg:px-[25%]">
-          <div className="w-[5px] border-l-[3px] border-[#fff]"></div>
-          <p className="mt-5">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Blanditiis hic esse reiciendis recusandae molestias ab consequuntur ratione iure voluptate impedit. Inventore error eum nisi aliquam. Magnam autem nulla beatae.</p>
-        </div>
-
-        <div className="mt-5 flex flex-col md:flex-row items-center gap-3">
-          <span className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-1 px-3 hover:text-[#0070f3] cursor-pointer"
-            onClick={(e) => { e.preventDefault(); router.replace('/?buyTicket=1') }}>Buy Ticket </span>
-
-          {/* <a href="#" className="hover:text-[#0070f3]">Refer to earn free ticket</a> */}
-        </div>
-      </section>
+      {router?.query?.buyTicket && (
+        <BuyTicket
+          router={router}
+          currentUser={currentUser}
+          userBalance={userBalance}
+          setTicketBuy={setTicketBuy}
+          ticketBuy={ticketBuy}
+        />
+      )}
+      {router?.query?.play && (
+        <Play
+          router={router}
+          currentUser={currentUser}
+          currentLottery={currentLottery}
+          setTicketPlay={setTicketPlay}
+          ticketPlay={ticketPlay}
+        />
+      )}
     </div>
-
-    <footer className={styles.footer}>
-      {/* <Link href="/"><a> */}
-      <div>Powered by <span className="font-bold">BINANCE MINERS</span></div>
-      {/* </a></Link> */}
-    </footer>
-
-    {router?.query?.buyTicket && <BuyTicket router={router} currentUser={currentUser} userBalance={userBalance}
-      setTicketBuy={setTicketBuy}
-      ticketBuy={ticketBuy}
-    />}
-    {router?.query?.play && <Play
-      router={router}
-      currentUser={currentUser}
-      currentLottery={currentLottery}
-      setTicketPlay={setTicketPlay}
-      ticketPlay={ticketPlay}
-    />}
-  </div>)
+  );
 }
 
-
-const Play = ({ router, currentUser, currentLottery, setTicketPlay, ticketPlay }) => {
+const Play = ({
+  router,
+  currentUser,
+  currentLottery,
+  setTicketPlay,
+  ticketPlay,
+}) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if(!currentUser) return;    
+    if (!currentUser) return;
 
-    const res = await fetch('/api/play', {
-      method: 'POST',
-      body: JSON.stringify({ user: currentUser, lotteryId: currentLottery?._id, ticket: ticketPlay}),
-      type: 'application/json'
-    })
-    const resp = await res.json()
+    const res = await fetch("/api/play", {
+      method: "POST",
+      body: JSON.stringify({
+        user: currentUser,
+        lotteryId: currentLottery?._id,
+        ticket: ticketPlay,
+      }),
+      type: "application/json",
+    });
+    const resp = await res.json();
     if (res.status == 200) {
       // router.reload();
-      router.replace('/')
+      router.replace("/");
       return;
-    }else{
-      console.log(resp)
+    } else {
+      console.log(resp);
     }
-  }
+  };
 
-  return (<>
-    <div className="z-50">
-      <div className="fixed top-0 left-0 w-full h-full"
-        style={{ background: "rgba(0,0,0,.5)" }}
-        onClick={() => { router.push('/') }}></div>
-      <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] min-w-[300px] md:min-w-[450px]">
-        <div className="header font-bold p-2 text-white flex justify-between rounded-t-lg bg-[#ffa500]">
-          <div className="">SHOW IMG</div>
-        </div>
-        <div className="body rounded-b-lg bg-white p-2">
-          <div className="text-right text-sm">Available slots <span className="font-bold">{currentLottery?.totalTicket}</span></div>
-          <form className="mt-6 px-[30%]" onSubmit={handleSubmit}>
-            <div>
-              <input type="number" placeholder="1 ticket per slot"
-                min={0}
-                max={currentLottery?.totalTicket}
-                onChange={(e) => { setTicketPlay(e.target.value) }}
-                value={ticketPlay}
-                className="w-full outline-none border-b" />
+  return (
+    <>
+      <div className="z-50">
+        <div
+          className="fixed top-0 left-0 w-full h-full"
+          style={{ background: "rgba(0,0,0,.5)" }}
+          onClick={() => {
+            router.push("/");
+          }}
+        ></div>
+        <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] min-w-[300px] md:min-w-[450px]">
+          <div className="header font-bold p-2 text-white flex justify-between rounded-t-lg bg-[#ffa500]">
+            <div className="">SHOW IMG</div>
+          </div>
+          <div className="body rounded-b-lg bg-white p-2">
+            <div className="text-right text-sm">
+              Available slots{" "}
+              <span className="font-bold">{currentLottery?.totalTicket}</span>
             </div>
-            <div className="mt-5 flex justify-end">
-              <button type="submit">
-                <BsArrowRight className="outline-none font-[900] text-black text-xl" />
-              </button>
+            <form className="mt-6 px-[30%]" onSubmit={handleSubmit}>
+              <div>
+                <input
+                  type="number"
+                  placeholder="1 ticket per slot"
+                  min={0}
+                  max={currentLottery?.totalTicket}
+                  onChange={(e) => {
+                    setTicketPlay(e.target.value);
+                  }}
+                  value={ticketPlay}
+                  className="w-full outline-none border-b"
+                />
+              </div>
+              <div className="mt-5 flex justify-end">
+                <button type="submit">
+                  <BsArrowRight className="outline-none font-[900] text-black text-xl" />
+                </button>
+              </div>
+            </form>
+
+            <div className="border-b mt-8"></div>
+
+            <div className="text-center text-sm">
+              <div>You have {currentUser?.ticket} Ticket(s)</div>
+              <div>
+                <Link href="/?buyTicket=1">
+                  <a className="text-blue-600">Buy More</a>
+                </Link>
+              </div>
             </div>
-          </form>
-
-          <div className="border-b mt-8"></div>
-
-          <div className="text-center text-sm">
-            <div>You have {currentUser?.ticket} Ticket(s)</div>
-            <div><Link href="/?buyTicket=1"><a className="text-blue-600">Buy More</a></Link></div>
           </div>
         </div>
       </div>
-    </div>
-  </>)
-}
+    </>
+  );
+};
 
-const BuyTicket = ({ router, currentUser, userBalance, setTicketBuy, ticketBuy }) => {
-const handleSubmit = async (e) => {
+const BuyTicket = ({
+  router,
+  currentUser,
+  userBalance,
+  setTicketBuy,
+  ticketBuy,
+}) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if(!currentUser) return;    
+    if (!currentUser) return;
 
-    const res = await fetch('/api/buy', {
-      method: 'POST',
-      body: JSON.stringify({ user: currentUser, balance: userBalance, ticket: ticketBuy}),
-      type: 'application/json'
-    })
-    const resp = await res.json()
+    const res = await fetch("/api/buy", {
+      method: "POST",
+      body: JSON.stringify({
+        user: currentUser,
+        balance: userBalance,
+        ticket: ticketBuy,
+      }),
+      type: "application/json",
+    });
+    const resp = await res.json();
     if (res.status == 200) {
       // router.reload();
-      router.replace('/')
+      router.replace("/");
       return;
-    }else{
-      console.log(resp)
+    } else {
+      console.log(resp);
     }
-  }
+  };
 
-  return (<>
-    <div className="z-50">
-      <div className="fixed top-0 left-0 w-full h-full"
-        style={{ background: "rgba(0,0,0,.5)" }}
-        onClick={() => { router.push('/') }}></div>
-      <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] min-w-[300px] md:min-w-[450px]">
-        <div className="header font-bold p-2 text-white flex justify-between rounded-t-lg bg-[#ffa500]">
-          <div className="text-lg">Buy Ticket</div>
-          <div>$1 per ticket</div>
-        </div>
-        <div className="body rounded-b-lg bg-white py-4">
-          <form className="px-[20%]" onSubmit={handleSubmit}>
-            <div>
-              <div>Number of Tickets</div>
-              <input type="number" placeholder="Enter number of tickets"
-                min={0}
-                max={userBalance}
-                onChange={(e) => { setTicketBuy(e.target.value) }}
-                value={ticketBuy}
-                className="w-full outline-none" />
-            </div>
-            <div className="mt-6">
-              <input type="submit" value="Continue"
-                className="w-full outline-none bg-black text-white" />
-            </div>
-          </form>
+  return (
+    <>
+      <div className="z-50">
+        <div
+          className="fixed top-0 left-0 w-full h-full"
+          style={{ background: "rgba(0,0,0,.5)" }}
+          onClick={() => {
+            router.push("/");
+          }}
+        ></div>
+        <div className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] min-w-[300px] md:min-w-[450px]">
+          <div className="header font-bold p-2 text-white flex justify-between rounded-t-lg bg-[#ffa500]">
+            <div className="text-lg">Buy Ticket</div>
+            <div>$1 per ticket</div>
+          </div>
+          <div className="body rounded-b-lg bg-white py-4">
+            <form className="px-[20%]" onSubmit={handleSubmit}>
+              <div>
+                <div>Number of Tickets</div>
 
-          <div className="border-b mt-8"></div>
+                {/* <input
+                  type="number"
+                  placeholder="Enter number of tickets"
+                  min={0}
+                  max={userBalance}
+                  onChange={(e) => {
+                    setTicketBuy(e.target.value);
+                  }}
+                  value={ticketBuy}
+                  className="w-full outline-none"
+                />  */}
+              </div>
+              <div className="mt-6">
+                <input
+                  type="submit"
+                  value="Continue"
+                  className="w-full outline-none bg-black text-white"
+                />
+              </div>
+            </form>
 
-          <div className="text-center text-sm">
-            <div>You have {currentUser?.ticket} ticket currently
-              {/* <Link href="/?buyticket=1"><a className="text-blue-600">Buy More</a></Link> */}
+            <div className="border-b mt-8"></div>
+
+            <div className="text-center text-sm">
+              <div>
+                You have {currentUser?.ticket} ticket currently
+                {/* <Link href="/?buyticket=1"><a className="text-blue-600">Buy More</a></Link> */}
+              </div>
+              <div className="text-[.8rem] font-[fona]">
+                Your Balance: <span>${userBalance}</span>
+              </div>
             </div>
-            <div className="text-[.8rem] font-[fona]">Your Balance: <span>${userBalance}</span></div>
           </div>
         </div>
       </div>
-    </div>
-  </>)
-}
+    </>
+  );
+};
