@@ -1,10 +1,11 @@
 import sanityClient from '@sanity/client'
 
 const config = {
-  dataset: process.env.SANITY_STUDIO_API_DATASET,
-  projectId: process.env.SANITY_STUDIO_API_PROJECT_ID,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
   useCdn: false, //process.env.NODE_ENV === 'production',
-  token: process.env.SANITY_API_TOKEN,
+  apiVersion: 'v1',
+  token: process.env.NEXT_PUBLIC_SANITY_TOKEN,
 }
 const client = sanityClient(config)
 

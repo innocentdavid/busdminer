@@ -7,28 +7,61 @@ export const AppContext = createContext()
 
 export const AppProvider = ({ children }) => {
   const [appStatus, setAppStatus] = useState('')
+  const [formattedAccount, setFormattedAccount] = useState('')
   const [currentAccount, setCurrentAccount] = useState('')
   const [currentUser, setCurrentUser] = useState({})
+  const [userBalance, setUserBalance] = useState(0)
   const router = useRouter()
 
-  useEffect(() => {
-    // checkIfWalletIsConnected()
+  useEffect(() => { // checkIfWalletIsConnected
+    const fetch = async () => {
+      await checkIfWalletIsConnected()
+    }      
+    return fetch
   }, [])
 
-  useEffect(() => {
+  async function checkIfWalletIsConnected(location) {
+    // console.log(location)
+    if (!window.ethereum) return setAppStatus('notConnected')
+    try {
+      const addressArray = await window.ethereum.request({
+        method: 'eth_accounts',
+      })
+      // console.log(window.ethereum.selectedAddress)
+      // console.log({addressArray})
+      if (addressArray.length > 0) {
+        setAppStatus('connected')
+        // alert('connected')
+        setCurrentAccount(addressArray[0])
+        await getUserBalance(addressArray[0])
+        let fAccount = addressArray[0].slice(0, 4) + '...' + addressArray[0].slice(-4)
+        setFormattedAccount(fAccount);
+        await createUserAccount(addressArray[0])
+      } else {
+        setAppStatus('notConnected')
+      }
+    } catch (err) {
+      // alert('An error occured')
+      setAppStatus('notConnected')
+      // router.push('/')
+    }
+  }
+
+  useEffect(() => { // on change listener
     if (window) {
       const et = window.ethereum;
-      alert("No MetaMask!")
-      if (!et) return setAppStatus('noMetaMask');
+      // alert("No MetaMask!")
+      if (!et) return setAppStatus('notConnected');
 
       et.on('accountsChange', accountsChangeHandler)
-      et.on('chainChange', chainChangeHandler)      
+      et.on('chainChange', chainChangeHandler)
+      checkIfWalletIsConnected()
     }
   }, [])
 
   const accountsChangeHandler = async () => {
     console.log('accountsChangeHandler')
-    checkIfWalletIsConnected()
+    await checkIfWalletIsConnected("acChanged")
     if (currentAccount) {
       await getCurrentUserDetails(currentAccount)
       await createUserAccount(currentAccount)
@@ -36,51 +69,14 @@ export const AppProvider = ({ children }) => {
     }
   }
 
-  const chainChangeHandler = () => {
+  const chainChangeHandler = async () => {
     console.log('chainChangeHandler')
+    await checkIfWalletIsConnected()
     window.location.reload()
   }
 
-  useEffect(() => {
-    if (!currentAccount && appStatus == 'connected') return
-    getCurrentUserDetails(currentAccount)
-    // getTodayLottery()
-  }, [currentAccount, appStatus])
-
-  /**
-   * Checks if there is an active wallet connection
-   */
-  const checkIfWalletIsConnected = async () => {
-    if (!window.ethereum) return setAppStatus('noMetaMask')
-    try {
-      const addressArray = await window.ethereum.request({
-        method: 'eth_accounts',
-      })
-      if (addressArray.length > 0) {
-        setAppStatus('connected')
-        // alert('connected')
-        setCurrentAccount(addressArray[0])
-
-        createUserAccount(addressArray[0])
-      } else {
-        // alert('notConnected')
-        setAppStatus('notConnected')
-        // router.push('/')
-      }
-    } catch (err) {
-      // alert('An error occured')
-      setAppStatus('error')
-      // router.push('/')
-    }
-  }
-
-  /**
-   * Initiates MetaMask wallet connection
-   */
-  const [userBalance, setUserBalance] = useState(0)
-
   const connectWallet = async () => {
-    if (!window.ethereum) return setAppStatus('noMetaMask')
+    if (!window.ethereum) return setAppStatus('notConnected')
     try {
       setAppStatus('loading')
 
@@ -88,13 +84,16 @@ export const AppProvider = ({ children }) => {
         method: 'eth_requestAccounts',
       })
 
-      // console.log('connectWallet wa', addressArray)
+      const account = addressArray[0]
 
-      if (addressArray.length > 0) {
-        setCurrentAccount(addressArray[0])
-        await getUserBalance(addressArray[0])
-        await createUserAccount(addressArray[0])
-        // console.log(ethers.utils.formatBytes32String(addressArray[0]))
+      if (account) {
+        setCurrentAccount(account)
+        // console.log('connect', currentAccount)
+        let fAccount = account.slice(0, 4) + '...' + account.slice(-4)
+        setFormattedAccount(fAccount);
+        await getUserBalance(account)
+        await createUserAccount(account)
+        // console.log(ethers.utils.formatBytes32String(account))
       } else {
         // alert('notConnected')
         console.log('err connectWallet wa', addressArray?.length)
@@ -107,38 +106,11 @@ export const AppProvider = ({ children }) => {
   }
 
   const disconnectWallet = async () => {
-    if (!window.ethereum) return setAppStatus('noMetaMask')
-    try {
-      setAppStatus('loading')
-
-      const addressArray = await window.ethereum.request({
-        method: 'eth_requestAccounts',
-        params: [{ eth_accounts: {} }]
-      })
-
-      // if (addressArray.length > 0) {
-      console.log({ addressArray })
-      //   setCurrentAccount(addressArray[0])
-      //   createUserAccount(addressArray[0])
-      //   getUserBalance(addressArray[0])
-      // } else {
-      setCurrentAccount(null)
-      // createUserAccount(null)
-      setUserBalance(0)
-      // alert('notConnected')
-      setAppStatus('notConnected')
-      // router.push('/')
-      // }
-    } catch (err) {
-      setAppStatus('error')
-    }
+    // logout();
   }
 
-  /**
-   * Get current user's balance
-   */
   const getUserBalance = async (account) => {
-    if (!window.ethereum) return setAppStatus('noMetaMask')
+    if (!window.ethereum) return setAppStatus('notConnected')
     const balance = await window.ethereum.request({
       method: 'eth_getBalance', params: [account, 'latest']
     })
@@ -148,22 +120,19 @@ export const AppProvider = ({ children }) => {
     return b
   }
 
-  /**
-   * Creates an account in Sanity DB if the user does not already have one
-   * @param {String} userAddress Wallet address of the currently logged in user
-   */
   const createUserAccount = async (userAddress = currentAccount) => {
-    if (!window.ethereum) return setAppStatus('noMetaMask')
+    if (!window.ethereum) return setAppStatus('notConnected')
     try {
       const userDoc = {
         _type: 'user',
         _id: userAddress,
         walletAddress: userAddress,
+        ticket: 0,
       }
-
       const newUser = await client.createIfNotExists(userDoc)
+
       newUser && setCurrentUser(newUser);
-      console.log({newUser})
+      // console.log({ newUser })
       setAppStatus('connected')
       return { message: 'success' }
     } catch (error) {
@@ -172,12 +141,16 @@ export const AppProvider = ({ children }) => {
       return { message: 'error', error }
     }
   }
-  
-  /**
-   * Gets the current user details from Sanity DB.
-   * @param {String} userAccount Wallet address of the currently logged in user
-   * @returns null
-   */
+
+  useEffect(() => { // getCurrentUserDetails
+    if (!currentAccount && appStatus == 'connected') return
+      ;(async function () {
+        const d = await getCurrentUserDetails(currentAccount)
+        console.log({d})
+      })
+    // getTodayLottery()
+  }, [currentAccount, appStatus])
+  // console.log('check', currentAccount)
   const getCurrentUserDetails = async (userAccount = currentAccount) => {
     if (appStatus !== 'connected') return;
 
@@ -187,10 +160,7 @@ export const AppProvider = ({ children }) => {
     const response = await client.fetch(query)
     setCurrentUser(response)
   }
-
-  /**
-   * Gets the Current lottery.
-   */
+  
   const [currentLottery, setCurrentLottery] = useState([])
 
   const fetchCurrentLottery = async () => {
@@ -205,9 +175,6 @@ export const AppProvider = ({ children }) => {
     return { message: 'success' }
   }
 
-  /**
-   * Gets the last lottery.
-   */
   const [lastLottery, setLastLottery] = useState([])
 
   const fetchLastLottery = async () => {
@@ -226,7 +193,9 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider
       value={{
         appStatus,
+        setAppStatus,
         currentAccount,
+        formattedAccount,
         userBalance,
         connectWallet,
         disconnectWallet,

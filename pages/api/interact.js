@@ -1,3 +1,5 @@
+import { ticketNumberGenerator } from '../../lib/functions';
+
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 
 const web3 = createAlchemyWeb3(process.env.NEXT_PUBLIC_BSC_RPC_URL);
@@ -40,7 +42,7 @@ const raffleContract = new web3.eth.Contract(
 //   return price
 // }
 
-export const enterRaffle = async (ticketAmount) => {
+export const enterRaffle = async (lotteryId, ticketAmount) => {
   if (!window.ethereum.selectedAddress) {
     return {
       success: false,
@@ -73,9 +75,18 @@ export const enterRaffle = async (ticketAmount) => {
     });
 
     if (txHash) {
+      let list = []
+      for (let i = 0; i < ticketAmount; i++) {
+        const ticketNumber = ticketNumberGenerator()
+        const t = window.ethereum.selectedAddress + "_" + ticketNumber
+        list.push(t)
+      }
+
       await client
-        .patch(user._id)
-        .inc({ ticket: parseInt(ticketAmount) })
+        .patch(lotteryId)
+        .setIfMissing({ ticketsPlayed: [] })
+        .insert('after', 'ticketsPlayed[-1]', list)
+        .dec({ totalTicket: parseInt(ticketAmount) })
         .commit()
 
       return {

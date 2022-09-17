@@ -13,6 +13,7 @@ import { FiCopy } from "react-icons/fi";
 import { AppContext } from "../context/AppContext";
 import { useContext } from "react";
 import { FiLogOut } from "react-icons/fi";
+import { formatWalletAddress } from "../lib/functions";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Web3 from "web3";
@@ -23,20 +24,9 @@ import { dappconfig } from "./api/dapp.config";
 
 export default function Home() {
   const router = useRouter();
-  var { appStatus,
-    setAppStatus,
-    connectWallet,
-    disconnectWallet,
-    currentAccount,
-    formattedAccount,
-    userBalance,
-    currentUser,
-    fetchLastLottery,
-    lastLottery,
-    fetchCurrentLottery,
-    currentLottery }
-    = useContext(AppContext);
-    
+  const {
+    appStatus, setAppStatus, connectWallet, disconnectWallet, currentAccount, userBalance, currentUser,
+    fetchLastLottery, lastLottery, fetchCurrentLottery, currentLottery, } = useContext(AppContext);
   const [ticketAmount, setTicketAmount] = useState(1);
   const [isBuying, setIsBuying] = useState(false);
   const [ticketBuy, setTicketBuy] = useState();
@@ -44,21 +34,36 @@ export default function Home() {
   const [provider, setProvider] = useState({});
   const [status, setStatus] = useState(null);
 
-  // Web3 Browswer Detection
   useEffect(() => {
-    if (window) {
-      if (typeof window.ethereum !== "undefined") {
-        console.log("Injected Web3 Wallet is installed!");
-        // setAppStatus('notConnected');
-        return;
-      }
+    // Web3 Browswer Detection
+    if (typeof window.ethereum !== "undefined") {
+      console.log("Injected Web3 Wallet is installed!");
+      setAppStatus('notConnected');
+      return;
     }
   }, []);
 
-  // console.log(appStatus)
+  console.log(appStatus)
   //Connect Account Function
   async function connectAccount() {
-    connectWallet();
+    const accounts = await ethereum.request({
+      method: "eth_requestAccounts",
+    });
+    window.alert("Connected", "You can now proceed!", "success");
+
+    const account = accounts[0];
+    ConnectButton.innerHTML =
+      account[0] +
+      account[1] +
+      account[2] +
+      account[3] +
+      account[4] +
+      account[5] +
+      "..." +
+      account[38] +
+      account[39] +
+      account[40] +
+      account[41];
   }
 
   const countDown = (countDate) => {
@@ -96,15 +101,11 @@ export default function Home() {
   // countDown
   useEffect(() => {
     const count = setInterval(() => {
-      if (currentLottery) {
-        var countDate = new Date(currentLottery?.start).getTime();
-        countDown(countDate);
-      }
+      var countDate = new Date(currentLottery.start).getTime();
+      countDown(countDate);
     }, 1000);
-    if (currentLottery) {
-      return () => clearInterval(count);
-    }
-    return;
+    if (!currentLottery) return;
+    return () => clearInterval(count);
   }, [currentLottery]);
 
   //  fetchLastLottery(); fetchCurrentLottery();
@@ -113,7 +114,6 @@ export default function Home() {
       await fetchLastLottery();
       await fetchCurrentLottery();
     };
-    if (!fetchLastLottery) return;
     fetch();
   }, []);
 
@@ -135,31 +135,17 @@ export default function Home() {
   };
 
   const enterRaffleHandler = async () => {
-    if(!currentLottery) {
-      alert("No ungoing lottery!");
-      return;
-    };
-
     setIsBuying(true);
 
-    const { success, status } = await enterRaffle(currentLottery?._id, ticketAmount);
+    const { success, status } = await enterRaffle(ticketAmount);
 
     setStatus({
       success,
       message: status,
     });
-    console.log(status)
-    if(!success) {
-      alert(status)
-      connectAccount()
-    }else{
-      router.reload()
-    }
 
     setIsBuying(false);
   };
-
-  // console.log(appStatus)
 
   if (appStatus === "loading") {
     return (
@@ -187,7 +173,7 @@ export default function Home() {
           <img src="/BUSD MINER_LOGO 22.png" alt="LOGO" width="60px" />
         </div>
 
-        {!appStatus || appStatus == "notConnected" ?
+        {appStatus == "notConnected" ? 
           <div
             className="flex gap-3 cursor-pointer border hover:border-[#ffa500] px-4 py-1 rounded-full"
             onClick={() => connectAccount()}
@@ -195,13 +181,12 @@ export default function Home() {
             <Image src="/images/metamask.png" width={"20px"} height={"20px"} />
             <div className="font-bold">Connect Wallet</div>
             {/* <div className="">Connect to Metamask.</div> */}
-          </div>
-          :
+          </div> 
+          : 
           <div className="flex flex-col text-end">
             <div className="font-bold select-none">
-              {formattedAccount}
-              <span className=""> | </span>
-              {userBalance && userBalance > 0 ? parseFloat(userBalance).toFixed(4) : 0}
+              {currentAccount && formatWalletAddress(currentAccount)} | 
+              {userBalance && parseFloat(userBalance).toFixed(4)}
             </div>
             <div className="text-sm font-semibold">
               Ticket: <span className="font-bold">{currentUser?.ticket}</span>
@@ -232,8 +217,7 @@ export default function Home() {
               className="flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
               onClick={(e) => {
                 e.preventDefault();
-                router.replace("#play");
-                // router.replace("/?play=1");
+                router.replace("/?play=1");
               }}
             >
               PLAY NOW{" "}
@@ -270,8 +254,9 @@ export default function Home() {
                 <AiOutlineStar size="20px" />
               </div>
               <span className="text-white">
-                {lastLottery && lastLottery[1]?.winner &&
-                  formatWalletAddress(lastLottery && lastLottery[1]?.winner)}
+                {lastLottery[1]?.winner &&
+                  formatWalletAddress(lastLottery[1]?.winner)}
+                0xE***35df
               </span>
             </div>
 
@@ -281,7 +266,7 @@ export default function Home() {
           </div>
 
           <div>
-            <strong>{lastLottery && lastLottery[1]?.prize}700 BUSD</strong>
+            <strong>{lastLottery[1]?.prize}700 BUSD</strong>
           </div>
 
           <div className="flex items-center gap-2 mt-2 mb-5 px-20">
@@ -318,40 +303,14 @@ export default function Home() {
             className="mt-5 flex items-center justify-between gap-3 text-[1rem] font-semibold font-['Montserrat'] leading-6 bg-white py-2 px-4 hover:text-[#0070f3]"
             onClick={(e) => {
               e.preventDefault();
-              router.replace("#play");
-              // router.replace("/?play=1");
+              router.replace("/?play=1");
             }}
           >
             PLAY NOW{" "}
           </span>
-
-          <div className="flex flex-col md:flex-row md:space-x-14 w-80 mt-10 md:mt-14" id="play">
+          <div className="flex flex-col md:flex-row md:space-x-14 w-80 mt-10 md:mt-14">
             <div className="flex flex-col items-center w-full px-4 mt-16 md:mt-0">
               <div className="font-coiny flex items-center justify-between w-full">
-              <button
-                  className="w-14 h-10 md:w-16 md:h-12 flex items-center justify-center text-brand-background hover:shadow-lg bg-gray-300 font-bold rounded-md"
-                  onClick={decrementTicketAmount}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6 md:h-8 md:w-8"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M18 12H6"
-                    />
-                  </svg>
-                </button>
-                
-                <p className="flex items-center justify-center flex-1 grow text-center font-bold text-brand-pink text-3xl md:text-4xl">
-                  {ticketAmount}
-                </p>
-
                 <button
                   className="w-14 h-10 md:w-16 md:h-12 flex items-center justify-center text-brand-background hover:shadow-lg bg-gray-300 font-bold rounded-md"
                   onClick={incrementTicketAmount}
@@ -368,6 +327,30 @@ export default function Home() {
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                </button>
+
+                <p className="flex items-center justify-center flex-1 grow text-center font-bold text-brand-pink text-3xl md:text-4xl">
+                  {ticketAmount}
+                </p>
+
+                <button
+                  className="w-14 h-10 md:w-16 md:h-12 flex items-center justify-center text-brand-background hover:shadow-lg bg-gray-300 font-bold rounded-md"
+                  onClick={decrementTicketAmount}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 md:h-8 md:w-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18 12H6"
                     />
                   </svg>
                 </button>
