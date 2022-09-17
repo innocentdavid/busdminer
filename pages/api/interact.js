@@ -92,7 +92,7 @@ export const enterRaffle = async (lotteryId, ticketAmount) => {
       return {
         success: true,
         status: (
-          <a href={`https://rinkeby.etherscan.io/tx/${txHash}`} target="_blank">
+          <a href={`https://rinkeby.etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer">
             <p>✅ Check out your transaction on Etherscan:</p>
             <p>{`https://rinkeby.etherscan.io/tx/${txHash}`}</p>
           </a>
