@@ -11,15 +11,11 @@
   "dependencies": {
     "@alch/alchemy-web3": "^1.4.6",
     "@sanity/client": "^3.3.3",
-    "@walletconnect/web3-provider": "^1.8.0",
     "ethers": "^5.7.0",
     "next": "12.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-icons": "^4.4.0",
-    "sdk": "^0.5.0",
-    "web3": "^1.7.5",
-    "web3uikit": "^0.1.159"
+    "react-icons": "^4.4.0"
   },
   "devDependencies": {
     "@sanity/cli": "^2.31.0",
