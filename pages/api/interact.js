@@ -54,7 +54,7 @@ export const enterRaffle = async (lotteryId, ticketAmount) => {
     window.ethereum.selectedAddress,
     "latest"
   );
-
+//
   // Set up our Ethereum transaction
   const tx = {
     to: dappconfig.contractAddress,
