@@ -7,10 +7,15 @@ import client from "./config";
 import { dappconfig } from "./dapp.config";
 
 const contract = require("../artifacts/contracts/Raffle.sol/Raffle.json");
-const raffleContract = new web3.eth.Contract(
-  contract.abi,
-  dappconfig.contractAddress
-);
+
+var raffleContract;
+
+if (web3) {
+  raffleContract = new web3.eth.Contract(
+    contract.abi,
+    dappconfig.contractAddress
+  );
+}
 
 // export const getTotalMinted = async () => {
 //   const totalMinted = await raffleContract.methods.totalSupply().call()
@@ -50,59 +55,59 @@ export const enterRaffle = async (lotteryId, ticketAmount) => {
     };
   }
 
-  const nonce = await web3.eth.getTransactionCount(
-    window.ethereum.selectedAddress,
-    "latest"
-  );
-//
-  // Set up our Ethereum transaction
-  const tx = {
-    to: dappconfig.contractAddress,
-    from: window.ethereum.selectedAddress,
-    value: parseInt(
-      web3.utils.toWei(String(dappconfig.price * ticketAmount), "ether")
-    ).toString(16), // hex
-    data: raffleContract.methods
-      .enterRaffle(window.ethereum.selectedAddress, ticketAmount)
-      .encodeABI(),
-    nonce: nonce.toString(16),
-  };
+  if (web3) {
+    var nonce = await web3.eth.getTransactionCount(
+      window.ethereum.selectedAddress,
+      "latest"
+    );
 
-  try {
-    const txHash = await window.ethereum.request({
-      method: "eth_sendTransaction",
-      params: [tx],
-    });
+    // Set up our Ethereum transaction
+    const tx = {
+      to: dappconfig.contractAddress,
+      from: window.ethereum.selectedAddress,
+      value: parseInt(web3.utils.toWei(String(dappconfig.price * ticketAmount), "ether")).toString(16), // hex
+      data: raffleContract.methods
+        .enterRaffle(window.ethereum.selectedAddress, ticketAmount)
+        .encodeABI(),
+      nonce: nonce.toString(16),
+    };
 
-    if (txHash) {
-      let list = []
-      for (let i = 0; i < ticketAmount; i++) {
-        const ticketNumber = ticketNumberGenerator()
-        const t = window.ethereum.selectedAddress + "_" + ticketNumber
-        list.push(t)
+    try {
+      const txHash = await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [tx],
+      });
+
+      if (txHash) {
+        let list = []
+        for (let i = 0; i < ticketAmount; i++) {
+          const ticketNumber = ticketNumberGenerator()
+          const t = window.ethereum.selectedAddress + "_" + ticketNumber
+          list.push(t)
+        }
+
+        await client
+          .patch(lotteryId)
+          .setIfMissing({ ticketsPlayed: [] })
+          .insert('after', 'ticketsPlayed[-1]', list)
+          .dec({ totalTicket: parseInt(ticketAmount) })
+          .commit()
+
+        return {
+          success: true,
+          status: (
+            <a href={`https://rinkeby.etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer">
+              <p>✅ Check out your transaction on Etherscan:</p>
+              <p>{`https://rinkeby.etherscan.io/tx/${txHash}`}</p>
+            </a>
+          ),
+        };
       }
-
-      await client
-        .patch(lotteryId)
-        .setIfMissing({ ticketsPlayed: [] })
-        .insert('after', 'ticketsPlayed[-1]', list)
-        .dec({ totalTicket: parseInt(ticketAmount) })
-        .commit()
-
+    } catch (error) {
       return {
-        success: true,
-        status: (
-          <a href={`https://rinkeby.etherscan.io/tx/${txHash}`} target="_blank" rel="noreferrer">
-            <p>✅ Check out your transaction on Etherscan:</p>
-            <p>{`https://rinkeby.etherscan.io/tx/${txHash}`}</p>
-          </a>
-        ),
+        success: false,
+        status: "😞 Smth went wrong:" + error.message,
       };
     }
-  } catch (error) {
-    return {
-      success: false,
-      status: "😞 Smth went wrong:" + error.message,
-    };
   }
 };
